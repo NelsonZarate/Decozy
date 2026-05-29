@@ -1,8 +1,8 @@
 services:
   api:
     build:
-      context: .
-      dockerfile: ./backend/ops/backend.Dockerfile
+      context: ./backend/ops/
+      dockerfile: backend.Dockerfile
     volumes:
       - .:/app
     networks:
@@ -16,7 +16,6 @@ services:
       DATABASE_HOST: ${database_host}
       DATABASE_PORT: ${database_port}
       DATABASE_NAME: ${database_name}
-      GROQ_API_KEY: ${groq_api_key}
     depends_on:
       database:
         condition: service_healthy
@@ -24,7 +23,7 @@ services:
   frontend:
     build:
       dockerfile: Dockerfile
-      context: ./frontend
+      context: ./frontend/ops/
     depends_on:
       - api
     ports:
