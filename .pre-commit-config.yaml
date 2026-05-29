@@ -1,0 +1,24 @@
+# Ignora pastas inteiras (usa regex). 
+# O pipe | permite listar múltiplas pastas/ficheiros facilmente.
+exclude: >
+  (?x)^(
+    scripts/|
+    alembic/|
+    \.devcontainer/
+  )
+
+repos:
+  # Formatação e Linting com Ruff (muito rápido)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: [ --fix ]
+      - id: ruff-format
+
+  # Validação do Conventional Commits
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.25.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]

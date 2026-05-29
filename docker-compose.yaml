@@ -1,0 +1,75 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./backend/ops/backend.Dockerfile
+    volumes:
+      - .:/app
+    networks:
+      - app-network
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_DRIVER: ${database_driver}
+      DATABASE_USERNAME: ${database_username}
+      DATABASE_PASSWORD: ${database_password}
+      DATABASE_HOST: ${database_host}
+      DATABASE_PORT: ${database_port}
+      DATABASE_NAME: ${database_name}
+      GROQ_API_KEY: ${groq_api_key}
+    depends_on:
+      database:
+        condition: service_healthy
+
+  frontend:
+    build:
+      dockerfile: Dockerfile
+      context: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/html:/usr/share/nginx/html
+      - ./frontend/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - app-network
+
+  database:
+    image: postgres:17
+    restart: always
+    volumes:
+      - data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${database_password}
+      POSTGRES_USER: ${database_username}
+      POSTGRES_DB: ${database_name}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${database_username} -d ${database_name}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    ports:
+      - "5433:5432"
+    networks:
+      - app-network
+
+  adminer:
+    image: adminer:latest
+    restart: always
+    links:
+      - database:db
+    networks:
+      - app-network
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+
+volumes:
+  data:
+
+networks:
+  app-network:
+    driver: bridge
