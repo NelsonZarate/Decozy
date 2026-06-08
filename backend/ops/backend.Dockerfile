@@ -12,12 +12,10 @@ ENV PYTHONPATH=/app/backend/src
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock ./
-
-
 COPY backend/ ./backend/
 
-RUN uv sync --frozen --no-cache
+
+RUN cd backend && uv sync --frozen --no-cache
 
 EXPOSE 8000
 

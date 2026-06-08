@@ -1,8 +1,14 @@
+BACKEND_DIR = backend
 .PHONY: env
 
 install: 
 	@cd frontend
 	@uv sync
+
+start:
+	@make env
+	@make build
+	@make db-upgrade
 
 up:
 	docker-compose up -d
@@ -10,11 +16,22 @@ up:
 build:
 	docker-compose up -d --build
 
-migrate:
-	docker-compose exec backend alembic upgrade head
+db-migrate:
+	@if [ -z "$(m)" ]; then \
+		echo "Erro: Tens de passar uma mensagem. Exemplo: make db-migrate m='add_user_avatar'"; \
+		exit 1; \
+	fi
+	@docker compose exec api \
+		uv run alembic -c backend/alembic.ini revision --autogenerate -m "$(m)"
 
-seed:
-	docker-compose exec backend python app/seed.py
+db-upgrade:
+	@docker compose exec api \
+		uv run alembic -c backend/alembic.ini upgrade head
+
+db-downgrade:
+	@docker compose exec api \
+		uv run alembic -c backend/alembic.ini downgrade -1
+
 
 logs:
 	docker-compose logs -f
