@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+:root {
+  /* Surface */
+  --surface: #faf9f7;
+  --surface-dim: #dadad8;
+  --surface-bright: #faf9f7;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f4f3f1;
+  --surface-container: #efeeec;
+  --surface-container-high: #e9e8e6;
+  --surface-container-highest: #e3e2e0;
+  --on-surface: #1a1c1b;
+  --on-surface-variant: #44474c;
+  --inverse-surface: #2f3130;
+  --inverse-on-surface: #f1f1ef;
+  --surface-variant: #e3e2e0;
+
+  /* Primary - Navy */
+  --primary: #041627;
+  --on-primary: #ffffff;
+  --primary-container: #1a2b3c;
+  --on-primary-container: #8192a7;
+  --inverse-primary: #b7c8de;
+
+  /* Secondary - Sage */
+  --secondary: #4f6353;
+  --on-secondary: #ffffff;
+  --secondary-container: #cfe6d1;
+  --on-secondary-container: #536857;
+
+  /* Tertiary - Warm */
+  --tertiary: #161610;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #2b2a24;
+  --on-tertiary-container: #949189;
+
+  /* Error */
+  --error: #ba1a1a;
+  --on-error: #ffffff;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+
+  /* Outline */
+  --outline: #74777d;
+  --outline-variant: #c4c6cd;
+
+  /* Background */
+  --background: #faf9f7;
+  --on-background: #1a1c1b;
+}
+
+@theme inline {
+  /* Colors */
+  --color-surface: var(--surface);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-inverse-surface: var(--inverse-surface);
+  --color-inverse-on-surface: var(--inverse-on-surface);
+  --color-surface-variant: var(--surface-variant);
+
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+
+  --color-tertiary: var(--tertiary);
+  --color-on-tertiary: var(--on-tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-error-container: var(--error-container);
+
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+
+  --color-background: var(--background);
+  --color-on-background: var(--on-background);
+
+  /* Fonts */
+  --font-body: var(--font-manrope);
+  --font-serif: var(--font-eb-garamond);
+}
+
+body {
+  background: var(--surface);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+}
