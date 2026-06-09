@@ -1,10 +1,11 @@
 services:
   api:
     build:
-      context: .
-      dockerfile: ./backend/ops/backend.Dockerfile
+      context: ./backend
+      dockerfile: ops/backend.Dockerfile
     volumes:
       - .:/app
+      - /app/backend/.venv
       - ./backend/src/app/static/uploads:/app/src/app/static/uploads
     networks:
       - app-network
@@ -59,7 +60,7 @@ services:
     image: adminer:latest
     restart: always
     links:
-      - database:db
+      - database:database
     networks:
       - app-network
     ports:

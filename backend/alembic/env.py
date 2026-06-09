@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -11,7 +13,17 @@ from app.models.user import UserModel, UserIdentityModel
 from app.models.project import ProjectModel, ProjectImageModel, GenerationModel
 from app.models.subscription import SubscriptionModel, StripeEventModel
 from app.models.item import ItemModel, UserSavedItemModel
+from app.core.settings import settings
 
+config = context.config
+DATABASE_URL = (
+    f"{settings.database_driver}://"
+    f"{settings.database_username}:{settings.database_password}@"
+    f"{settings.database_host}:{settings.database_port}/"
+    f"{settings.database_name}"
+)
+
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -46,7 +58,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = config.get_main_option("sqlalchemy.url", settings.database_url)
     context.configure(
         url=url,
         target_metadata=target_metadata,

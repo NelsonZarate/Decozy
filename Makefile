@@ -14,7 +14,7 @@ up:
 	docker-compose up -d
 
 build:
-	docker-compose up -d --build
+	docker-compose up --build
 
 db-migrate:
 	@if [ -z "$(m)" ]; then \
@@ -22,11 +22,11 @@ db-migrate:
 		exit 1; \
 	fi
 	@docker compose exec api \
-		uv run alembic -c backend/alembic.ini revision --autogenerate -m "$(m)"
+		uv run alembic -c alembic.ini revision --autogenerate -m "$(m)"
 
 db-upgrade:
 	@docker compose exec api \
-		uv run alembic -c backend/alembic.ini upgrade head
+		uv run alembic -c alembic.ini upgrade head
 
 db-downgrade:
 	@docker compose exec api \
