@@ -1,11 +1,14 @@
-FROM nginx:1.27
+# frontend/ops/Dockerfile
+FROM node:20-alpine
 
-# Copy the built frontend files to the nginx html directory
-COPY ./app /usr/share/nginx/html
-# Copy the nginx configuration files
-COPY ./conf.d/ /etc/nginx/conf.d/
+WORKDIR /app
+
+COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+
+RUN npm install
+
+COPY . .
 
 EXPOSE 3000
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["npm", "run", "dev"]
