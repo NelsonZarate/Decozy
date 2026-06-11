@@ -46,10 +46,13 @@ export function BeforeAfterSlider({ beforeImage, afterImage, status }: BeforeAft
       {/* After image (full background) */}
       <img src={afterImage} alt="After" className="absolute inset-0 w-full h-full object-cover" />
 
-      {/* Before image (clipped) */}
-      <div className="absolute inset-0 overflow-hidden" style={{ width: `${position}%` }}>
-        <img src={beforeImage} alt="Before" className="absolute inset-0 w-full h-full object-cover" style={{ width: containerRef.current?.offsetWidth || "100%" }} />
-      </div>
+      {/* Before image (clipped via clip-path so it keeps full container size) */}
+      <img
+        src={beforeImage}
+        alt="Before"
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
+      />
 
       {/* Slider line */}
       <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg" style={{ left: `${position}%` }}>

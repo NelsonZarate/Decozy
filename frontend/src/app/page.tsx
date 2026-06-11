@@ -9,6 +9,7 @@ import { StyleSelector } from "@/components/ui/StyleSelector";
 import { CustomInstructions } from "@/components/ui/CustomInstructions";
 import { GenerateButton } from "@/components/ui/GenerateButton";
 import { GalleryPage } from "@/components/GalleryPage";
+import { MyItemsPage } from "@/components/MyItemsPage";
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -51,11 +52,7 @@ export default function Home() {
 
       {activeTab === "gallery" && <GalleryPage />}
 
-      {activeTab === "profile" && (
-        <main className="flex-1 px-4 pb-24 flex items-center justify-center">
-          <p className="text-on-surface-variant text-sm">Profile coming soon</p>
-        </main>
-      )}
+      {activeTab === "my-items" && <MyItemsPage />}
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>

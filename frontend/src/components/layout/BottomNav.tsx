@@ -23,12 +23,16 @@ const tabs = [
     ),
   },
   {
-    id: "profile",
-    label: "Profile",
+    id: "my-items",
+    label: "My Items",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
+        <path d="M3 10V7a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v3" />
+        <rect x="1" y="10" width="4" height="7" rx="1.5" />
+        <rect x="19" y="10" width="4" height="7" rx="1.5" />
+        <path d="M5 12h14v5H5z" />
+        <path d="M5 17h14v2H5z" />
+        <path d="M6 19v2M18 19v2" />
       </svg>
     ),
   },
