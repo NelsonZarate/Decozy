@@ -1,7 +1,10 @@
 from datetime import datetime
-from sqlalchemy import ForeignKey, String, DateTime, Integer, func
+
+from sqlalchemy import DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.database.session import Base
+
 
 class ItemModel(Base):
     __tablename__ = "items"

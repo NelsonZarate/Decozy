@@ -1,8 +1,11 @@
 from datetime import datetime
 from typing import List
-from sqlalchemy import ForeignKey, String, DateTime, Integer, Text, func
+
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.database.session import Base
+
 
 class ProjectModel(Base):
     __tablename__ = "projects"
