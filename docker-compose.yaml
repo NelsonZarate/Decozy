@@ -1,10 +1,12 @@
 services:
   api:
     build:
-      context: ./backend/ops/
-      dockerfile: backend.Dockerfile
+      context: ./backend
+      dockerfile: ops/backend.Dockerfile
     volumes:
       - .:/app
+      - /app/backend/.venv
+      - ./backend/src/app/static/uploads:/app/src/app/static/uploads
     networks:
       - app-network
     ports:
@@ -22,14 +24,14 @@ services:
 
   frontend:
     build:
-      dockerfile: Dockerfile
-      context: ./frontend/ops/
+      context: ./frontend
+      dockerfile: ./ops/Dockerfile
     depends_on:
       - api
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend/html:/usr/share/nginx/html
+      - ./frontend/app:/usr/share/nginx/html
       - ./frontend/conf.d/:/etc/nginx/conf.d/
     networks:
       - app-network
@@ -58,7 +60,7 @@ services:
     image: adminer:latest
     restart: always
     links:
-      - database:db
+      - database:database
     networks:
       - app-network
     ports:
