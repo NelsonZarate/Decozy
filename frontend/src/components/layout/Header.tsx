@@ -1,7 +1,11 @@
-export function Header() {
+interface HeaderProps {
+  onMenuClick: () => void;
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   return (
     <header className="flex items-center justify-between px-4 py-4 sticky top-0 bg-surface z-10">
-      <button aria-label="Menu" className="p-1">
+      <button aria-label="Menu" className="p-1" onClick={onMenuClick}>
         <svg
           width="24"
           height="24"
