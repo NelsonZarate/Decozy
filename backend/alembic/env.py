@@ -1,19 +1,15 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
+from app.core.settings import settings
 
 # 1. Importar a Base e os teus Modelos para o Alembic os conhecer
 from app.database.session import Base
-from app.models.user import UserModel, UserIdentityModel
-from app.models.project import ProjectModel, ProjectImageModel, GenerationModel
-from app.models.subscription import SubscriptionModel, StripeEventModel
-from app.models.item import ItemModel, UserSavedItemModel
-from app.core.settings import settings
 
 config = context.config
 DATABASE_URL = (

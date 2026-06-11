@@ -1,8 +1,11 @@
 from datetime import date, datetime
 from typing import List
-from sqlalchemy import ForeignKey, String, Date, DateTime, Integer, func
+
+from sqlalchemy import Date, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.database.session import Base
+
 
 class UserModel(Base):
     __tablename__ = "users"
