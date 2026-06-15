@@ -1,0 +1,48 @@
+{
+  "projects": [
+    {
+      "id": "1",
+      "title": "Urban Oasis Living",
+      "room": "Living Room",
+      "style": "Scandinavian",
+      "tags": ["Minimalist", "Neutral Palette"],
+      "beforeImage": "https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=800&h=600&fit=crop&q=80",
+      "afterImage": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&h=600&fit=crop&q=80",
+      "status": "before_after",
+      "createdAt": "2026-06-01T10:00:00Z"
+    },
+    {
+      "id": "2",
+      "title": "Loft Workspace",
+      "room": "Office",
+      "style": "Industrial",
+      "tags": ["Brick Focus", "Dark Accents"],
+      "beforeImage": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop&q=80",
+      "afterImage": "https://images.unsplash.com/photo-1604709177225-055f99402ea3?w=800&h=600&fit=crop&q=80",
+      "status": "final_render",
+      "createdAt": "2026-05-28T14:30:00Z"
+    },
+    {
+      "id": "3",
+      "title": "Serene Retreat",
+      "room": "Bedroom",
+      "style": "Japanese",
+      "tags": ["Zen", "Natural Wood"],
+      "beforeImage": "https://images.unsplash.com/photo-1522444195799-478538b28823?w=800&h=600&fit=crop&q=80",
+      "afterImage": "https://images.unsplash.com/photo-1545083036-b175dd155a1d?w=800&h=600&fit=crop&q=80",
+      "status": "before_after",
+      "createdAt": "2026-05-25T09:15:00Z"
+    },
+    {
+      "id": "4",
+      "title": "Coastal Breeze",
+      "room": "Living Room",
+      "style": "Coastal",
+      "tags": ["Light Tones", "Airy"],
+      "beforeImage": "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=800&h=600&fit=crop&q=80",
+      "afterImage": "https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=800&h=600&fit=crop&q=80",
+      "status": "final_render",
+      "createdAt": "2026-05-20T16:00:00Z"
+    }
+  ]
+}
