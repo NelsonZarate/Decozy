@@ -91,6 +91,39 @@ async def create_project(
     db.commit()
     db.refresh(new_project)
     return new_project
+
+
+@router.put("/change_project_title/{project_id}", status_code=status.HTTP_200_OK)
+async def change_project_title(
+    project_id: int,
+    new_title: str,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
+):
+    """
+    Altera o título de um projeto específico.
+    """
+    # 1. Procura o projeto na BD e garante que pertence ao utilizador autenticado
+    project = (
+        db.query(ProjectModel)
+        .filter(ProjectModel.id == project_id, ProjectModel.user_id == current_user_id)
+        .first()
+    )
+
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Projeto não encontrado ou não tem permissão para alterar.",
+        )
+
+    # 2. Atualiza o título do projeto
+    project.title = new_title
+    db.commit()
+    db.refresh(project)
+
+    return project
+
+
 @router.delete("/delete_project/{project_id}", status_code=status.HTTP_200_OK)
 async def delete_project(
     project_id: int,

@@ -39,28 +39,46 @@ def process_image_with_ai_background(
     
     #Processamento da imagem com dados MOCKS
     try:
-        print(f"[Project {project_id}] 🛑 MOCK ATIVADO: A simular IA para poupar créditos da NVIDIA...")
-        
-        # ⏳ Simula que a IA demora 3 segundos a processar a imagem
-        time.sleep(3)
+        print(f"[Project {project_id}] A simular IA de Imagem e Texto...")
+        time.sleep(3) # Simula o tempo da IA
 
-        # 💸 COMENTADO PARA POUPAR CRÉDITOS:
-        # image_bytes = AIService.remove_furniture_from_image(input_path)
-
-        # 🛠️ MOCK: Em vez de chamar a IA, lemos a imagem original que fizeste upload
-        # e guardamo-la como se fosse o resultado da IA (assim o teu disco continua a ter o ficheiro!)
+        # 1. 🖼️ MOCK DA IMAGEM: Copia a imagem (como já tinhas)
         with open(input_path, "rb") as f_in:
             image_bytes = f_in.read()
-
-        # 1. Grava o resultado simulado com o prefixo 'ai_empty_' no disco
         with open(output_path, "wb") as f_out:
             f_out.write(image_bytes)
 
-        # 2. Grava a nova imagem na BD (image_type = 'generated')
+        # 2. 🧠 MOCK DO LLM: Aqui é onde chamarias o teu GPT/Claude
+        # Em vez de devolver um texto normal, tu pedes à IA para devolver um JSON!
+        # Exemplo do que a função AIService.generate_item_details(user_prompt) devolveria:
+        ia_json_response = """
+        {
+            "name": "Cadeira Velvet Azul Escuro",
+            "category": "Cadeiras e Poltronas",
+            "price": "149.99 €",
+            "buy_url": "https://decozy.com/search?q=cadeira+velvet+azul"
+        }
+        """
+        
+        # 3. 🧩 Transforma a string JSON num dicionário Python real
+        item_data = json.loads(ia_json_response)
+
+
         new_image = ProjectImageModel(
             project_id=project_id, image_type="generated", image_url=output_url
         )
         db.add(new_image)
+        
+        new_item = ItemModel(
+            project_id=project_id,
+            name=item_data["name"],           # Vem do JSON da IA
+            category=item_data["category"],   # Vem do JSON da IA
+            price=item_data["price"],         # Vem do JSON da IA
+            image_url=output_url,             # Usamos a imagem gerada
+            buy_url=item_data["buy_url"]      # Vem do JSON da IA
+        )
+        db.add(new_item)
+        db.commit()
 
         # 3. Atualiza a Geração para completed
         generation = (
@@ -77,32 +95,56 @@ def process_image_with_ai_background(
 
     # Tenta processar a imagem com a IA
     # try:
-    #     print(f"[Project {project_id}] A iniciar IA para o ficheiro {filename}...")
-    #     image_bytes = AIService.remove_furniture_from_image(input_path)
+        # print(f"[Project {project_id}] A iniciar IA (Imagem) para o ficheiro {filename}...")
+        
+        # 1. 🖼️ IA GERA A IMAGEM (A tua chamada à NVIDIA)
+        # image_bytes = AIService.remove_furniture_from_image(input_path)
 
-    #     # 1. Grava o resultado com o prefixo 'ai_empty_' no disco
-    #     with open(output_path, "wb") as f:
-    #         f.write(image_bytes)
+        # Grava o resultado com o prefixo 'ai_empty_' no disco
+        # with open(output_path, "wb") as f:
+        #     f.write(image_bytes)
 
-    #     # 2. Grava a nova imagem na BD (image_type = 'generated')
-    #     new_image = ProjectImageModel(
-    #         project_id=project_id, image_type="generated", image_url=output_url
-    #     )
-    #     db.add(new_image)
+        # 2. 🧠 IA GERA O TEXTO/MÓVEL (A chamada ao LLM - ChatGPT/Claude/etc)
+        # print(f"[Project {project_id}] A inventar detalhes do móvel com LLM...")
+        
+        # NOTA: Vais ter de criar este método no teu ficheiro ai_service.py!
+        # Ele vai receber o prompt do utilizador e devolver aquela string JSON.
+        # ia_json_response = AIService.generate_item_details(user_prompt)
+        # item_data = json.loads(ia_json_response)
 
-    #     # 3. Atualiza a Geração para completed
-    #     generation = (
-    #         db.query(GenerationModel)
-    #         .filter(GenerationModel.id == generation_id)
-    #         .first()
-    #     )
-    #     if generation:
-    #         generation.status = "completed"
-    #         generation.output_url = output_url
+        # 3. 💾 GRAVA TUDO NA BASE DE DADOS
+        
+        # A) Grava a nova imagem gerada pela NVIDIA
+        # new_image = ProjectImageModel(
+        #     project_id=project_id, image_type="generated", image_url=output_url
+        # )
+        # db.add(new_image)
 
-    #     db.commit()
-    #     print(f"Sucesso! Imagem gravada e BD atualizada: {output_url}")
+        # B) Grava o Item inventado pelo LLM
+        # new_item = ItemModel(
+        #     project_id=project_id,
+        #     name=item_data["name"],
+        #     category=item_data["category"],
+        #     price=item_data["price"],
+        #     image_url=output_url,          # Usamos a mesma imagem gerada pela IA
+        #     buy_url=item_data["buy_url"]
+        # )
+        # db.add(new_item)
 
+        # 4. ✅ ATUALIZA A GERAÇÃO PARA COMPLETED
+        # generation = (
+        #     db.query(GenerationModel)
+        #     .filter(GenerationModel.id == generation_id)
+        #     .first()
+        # )
+        # if generation:
+        #     generation.status = "completed"
+        #     generation.output_url = output_url
+
+        # Comita TUDO (Imagem, Item e Status) de uma só vez
+        # db.commit()
+        # print(f"Sucesso Absoluto! Imagem {output_url} e Item '{item_data['name']}' guardados!")
+    
     except Exception as e:
         db.rollback()
         print(f"Falha ao processar {filename} em background: {str(e)}")
@@ -162,6 +204,7 @@ async def upload_image(
             project_id=new_project.id,
             generation_id=new_generation.id,
             filename=filename,
+            user_prompt=user_prompt
         )
 
         # 6. Responde imediatamente ao Frontend com o ID do projeto

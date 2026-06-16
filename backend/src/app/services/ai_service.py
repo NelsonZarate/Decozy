@@ -42,3 +42,5 @@ class AIService:
             # Num ambiente real, podes usar um logger em vez de print
             print(f"Erro na comunicação com a API da NVIDIA: {str(e)}")
             raise RuntimeError(f"Falha na IA: {str(e)}")
+
+    
