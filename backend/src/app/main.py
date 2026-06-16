@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from app.core.settings import settings
 
 # Importar e incluir os routers
-from app.routers import upload
+from app.api.v1.api import api_router
 
 app = FastAPI(title="Decozy API")
 
@@ -13,4 +13,4 @@ os.makedirs(settings.upload_dir, exist_ok=True)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-app.include_router(upload.router)
+app.include_router(api_router, prefix="/api/v1")

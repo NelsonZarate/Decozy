@@ -1,3 +1,4 @@
+# app/models/project.py
 from datetime import datetime
 from typing import List
 
@@ -13,13 +14,14 @@ class ProjectModel(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title: Mapped[str] = mapped_column(String, nullable=False)
+    is_favorite: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relacionamentos
     user: Mapped["UserModel"] = relationship(back_populates="projects")
     images: Mapped[List["ProjectImageModel"]] = relationship(back_populates="project", cascade="all, delete-orphan")
     generations: Mapped[List["GenerationModel"]] = relationship(back_populates="project", cascade="all, delete-orphan")
-
+    items: Mapped[List["ItemModel"]] = relationship(back_populates="project", cascade="all, delete-orphan")
 
 class ProjectImageModel(Base):
     __tablename__ = "project_images"

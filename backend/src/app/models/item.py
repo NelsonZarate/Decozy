@@ -1,3 +1,4 @@
+#app/models/item.py
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, func
@@ -10,10 +11,12 @@ class ItemModel(Base):
     __tablename__ = "items"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    project_id: Mapped[int] = mapped_column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     category: Mapped[str] = mapped_column(String, nullable=False)
+    price: Mapped[str] = mapped_column(String, nullable=True)
     image_url: Mapped[str] = mapped_column(String, nullable=False)
-
+    buy_url: Mapped[str] = mapped_column(String, nullable=True)
     saved_by_users: Mapped[list["UserSavedItemModel"]] = relationship(back_populates="item", cascade="all, delete-orphan")
 
 

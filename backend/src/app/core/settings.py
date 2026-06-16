@@ -15,7 +15,8 @@ class Settings(BaseSettings):
     # --- Variáveis com Valores Padrão ---
     secret_key: str = "super_secret_key_de_desenvolvimento_123"
     algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
+    access_token_expire_minutes: int = 60 * 24 # 1 dia
+    
     environment: str = "development"
     port: int = 8000
     upload_dir: str = "static/uploads"
