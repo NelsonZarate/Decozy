@@ -8,9 +8,12 @@ dependencies = [
     "alembic>=1.18.4",
     "crewai>=1.14.6",
     "fastapi[all]>=0.136.3",
+    "passlib[bcrypt]>=1.7.4",
     "pillow>=12.2.0",
     "psycopg2-binary>=2.9.12",
+    "python-jose[cryptography]>=3.5.0",
     "python-multipart>=0.0.29",
+    "requests>=2.34.2",
     "ruff>=0.15.15",
     "sqlalchemy>=2.0.50",
     "stripe>=15.2.0",
@@ -21,7 +24,7 @@ dependencies = [
 # Define a versão do Python que estás a usar (vimos que no CI tens a 3.13)
 target-version = "py313"
 # Define o tamanho máximo de caracteres por linha de código (padrão profissional é entre 88 e 100)
-line-length = 88
+line-length = 120
 
 [tool.ruff.lint]
 # Regras que queres ativar:
@@ -31,7 +34,9 @@ line-length = 88
 select = ["E", "F", "I"]
 
 # Regras que queres ignorar (se houver alguma que te irrite durante o desenvolvimento)
-ignore = []
+[lint]
+# Ignora o aviso de linha longa (E501) especificamente na pasta do alembic
+per-file-ignores = { "alembic/versions/*" = ["E501"] }
 
 [tool.ruff.format]
 # Garante que o formatador usa aspas duplas (padrão do mercado)

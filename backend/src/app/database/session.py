@@ -1,26 +1,26 @@
-import os
 from collections.abc import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://decozy_user:decozy_password@db:5432/decozy_dev_db"
+from app.core.settings import settings
+
+DATABASE_URL = (
+    f"{settings.database_driver}://"
+    f"{settings.database_username}:{settings.database_password}@"
+    f"{settings.database_host}:{settings.database_port}/"
+    f"{settings.database_name}"
 )
 
 engine = create_engine(
     DATABASE_URL,
-    echo=True, 
+    echo=True,
 )
 
-SessionLocal = sessionmaker(
-    autocommit=False, 
-    autoflush=False, 
-    bind=engine
-)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
 
 def get_db() -> Generator:
     """

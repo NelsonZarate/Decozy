@@ -1,15 +1,15 @@
 from dotenv import load_dotenv
 
 load_dotenv()
-from logging.config import fileConfig
+from logging.config import fileConfig  # noqa: E402
 
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config, pool  # noqa: E402
 
-from alembic import context
-from app.core.settings import settings
+from alembic import context  # noqa: E402
+from app.core.settings import settings  # noqa: E402
 
-# 1. Importar a Base e os teus Modelos para o Alembic os conhecer
-from app.database.session import Base
+from app.database.session import Base  # noqa: E402
+import app.models  # noqa: F401, E402
 
 config = context.config
 DATABASE_URL = (
@@ -80,9 +80,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

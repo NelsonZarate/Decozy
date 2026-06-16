@@ -1,11 +1,15 @@
 import os
 import shutil
 import uuid
+
 from fastapi import UploadFile
+
 from app.core.settings import settings
 
 ALLOWED_EXTENSIONS = {"image/jpeg", "image/png", "image/jpg"}
 MAX_FILE_SIZE = 5 * 1024 * 1024
+
+
 class UploadService:
     @staticmethod
     def save_uploaded_file(file: UploadFile) -> str:
@@ -18,10 +22,10 @@ class UploadService:
 
         file_extension = file.filename.split(".")[-1]
         unique_filename = f"{uuid.uuid4()}.{file_extension}"
-        
+
         file_path = os.path.join(settings.upload_dir, unique_filename)
-        
+
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-            
+
         return unique_filename
