@@ -1,8 +1,12 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 const tabs = [
   {
     id: "design",
+    href: "/",
     label: "Design",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -12,6 +16,7 @@ const tabs = [
   },
   {
     id: "gallery",
+    href: "/gallery",
     label: "Gallery",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -24,6 +29,7 @@ const tabs = [
   },
   {
     id: "my-items",
+    href: "/my-items",
     label: "My Items",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -38,31 +44,32 @@ const tabs = [
   },
 ];
 
-interface BottomNavProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}
+export function BottomNav() {
+  const pathname = usePathname();
 
-export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-surface-container-lowest border-t border-outline-variant/30 px-2 py-2 z-20">
       <div className="flex items-center justify-around">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className={`flex flex-col items-center gap-1 px-4 py-1 rounded-lg transition-colors ${
-              activeTab === tab.id
-                ? "text-primary-container"
-                : "text-outline hover:text-on-surface-variant"
-            }`}
-          >
-            {tab.icon}
-            <span className="text-[10px] font-semibold tracking-[0.05em]">
-              {tab.label}
-            </span>
-          </button>
-        ))}
+        {tabs.map((tab) => {
+          const isActive = tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
+
+          return (
+            <Link
+              key={tab.id}
+              href={tab.href}
+              className={`flex flex-col items-center gap-1 px-4 py-1 rounded-lg transition-colors ${
+                isActive
+                  ? "text-primary-container"
+                  : "text-outline hover:text-on-surface-variant"
+              }`}
+            >
+              {tab.icon}
+              <span className="text-[10px] font-semibold tracking-[0.05em]">
+                {tab.label}
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );
