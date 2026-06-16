@@ -1,32 +1,49 @@
-#app/models/item.py
+# app/models/item.py
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.session import Base
 
+if TYPE_CHECKING:
+    from app.models.project import ProjectModel
+    from app.models.user import UserModel
 
 class ItemModel(Base):
     __tablename__ = "items"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    project_id: Mapped[int] = mapped_column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
     name: Mapped[str] = mapped_column(String, nullable=False)
     category: Mapped[str] = mapped_column(String, nullable=False)
     price: Mapped[str] = mapped_column(String, nullable=True)
     image_url: Mapped[str] = mapped_column(String, nullable=False)
     buy_url: Mapped[str] = mapped_column(String, nullable=True)
-    saved_by_users: Mapped[list["UserSavedItemModel"]] = relationship(back_populates="item", cascade="all, delete-orphan")
+    project: Mapped["ProjectModel"] = relationship(back_populates="items")
+    saved_by_users: Mapped[list["UserSavedItemModel"]] = relationship(
+        back_populates="item", cascade="all, delete-orphan"
+    )
 
 
 class UserSavedItemModel(Base):
     __tablename__ = "user_saved_items"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    item_id: Mapped[int] = mapped_column(Integer, ForeignKey("items.id", ondelete="CASCADE"), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    item_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("items.id", ondelete="CASCADE"), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     user: Mapped["UserModel"] = relationship(back_populates="saved_items")
     item: Mapped["ItemModel"] = relationship(back_populates="saved_by_users")

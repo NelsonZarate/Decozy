@@ -101,4 +101,4 @@ docker-compose.override.yml
 # Misc
 # =========================
 tmp/
-temp/
+temp/.env
