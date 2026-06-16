@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+import Link from "next/link";
 
 interface HamburgerMenuProps {
   isOpen: boolean;
@@ -61,7 +61,6 @@ export function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
 
   function handleSignIn() {
     onClose();
-    router.push("/signin?provider=google");
   }
 
   function handleSignOut() {
@@ -112,7 +111,13 @@ export function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               <p className="text-xs text-outline mb-4">
                 Sign in to save and sync your designs.
               </p>
-              <GoogleSignInButton label="Sign in with Google" onClick={handleSignIn} />
+            <Link
+              href="/signin"
+              onClick={handleSignIn}
+              className="w-full py-3 flex items-center justify-center rounded-xl font-semibold text-sm text-surface bg-primary-container hover:opacity-90 active:scale-[0.98] transition-all"
+            >
+              Sign In
+            </Link>
             </div>
           )}
 
