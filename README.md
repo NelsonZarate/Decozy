@@ -82,9 +82,12 @@ erDiagram
 
     ITEM {
         int id PK
+        int project_id FK
         string name
         string category
+        string price
         string image_url
+        string buy_url
     }
 
     USER_SAVED_ITEM {
@@ -109,7 +112,8 @@ erDiagram
 
     PROJECT ||--o{ PROJECT_IMAGE : contains
     PROJECT ||--o{ GENERATION : generates
-
+    PROJECT ||--o{ ITEM : "contém móveis sugeridos"
+    
     ITEM ||--o{ USER_SAVED_ITEM : bookmarked
 ```
 
