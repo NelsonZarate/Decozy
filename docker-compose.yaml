@@ -30,6 +30,7 @@ services:
       DATABASE_HOST: ${database_host}
       DATABASE_PORT: ${database_port}
       DATABASE_NAME: ${database_name}
+      NVIDIA_API_KEY: ${nvidia_api_key}
     depends_on:
       database:
         condition: service_healthy
