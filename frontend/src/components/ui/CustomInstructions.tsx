@@ -3,7 +3,7 @@ export function CustomInstructions() {
     <div className="relative">
       <textarea
         placeholder="E.g., Keep the existing sofa but change the wall colors to something warmer..."
-        className="w-full h-24 p-4 pr-12 border border-outline-variant rounded-md text-sm text-on-surface placeholder-outline resize-none focus:outline-none focus:ring-1 focus:ring-primary-container focus:border-primary-container bg-surface-container-lowest"
+        className="w-full h-32 p-4 pr-12 border border-outline-variant rounded-md text-sm text-on-surface placeholder-outline resize-none focus:outline-none focus:ring-1 focus:ring-primary-container focus:border-primary-container bg-surface-container-lowest"
       />
       <button
         aria-label="Voice input"
