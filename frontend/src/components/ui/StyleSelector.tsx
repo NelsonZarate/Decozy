@@ -67,7 +67,7 @@ export function StyleSelector() {
         <button
           key={style.name}
           onClick={() => setSelectedStyle(style.name)}
-          className={`relative flex-shrink-0 w-[100px] h-[100px] rounded-lg overflow-hidden transition-all ${
+          className={`relative flex-shrink-0 w-[150px] h-[150px] rounded-lg overflow-hidden transition-all ${
             selectedStyle === style.name
               ? "ring-2 ring-secondary ring-offset-2 ring-offset-surface scale-105"
               : ""
@@ -78,7 +78,7 @@ export function StyleSelector() {
               src={style.image}
               alt={style.name}
               fill
-              sizes="100px"
+              sizes="150px"
               className="object-cover"
             />
           ) : (
