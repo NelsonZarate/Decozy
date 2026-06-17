@@ -6,7 +6,7 @@ from fastapi import UploadFile
 
 from app.core.settings import settings
 
-ALLOWED_EXTENSIONS = {"image/jpeg", "image/png", "image/jpg"}
+ALLOWED_EXTENSIONS = {"image/jpeg", "image/png", "image/jpg", "image/webp"}
 MAX_FILE_SIZE = 5 * 1024 * 1024
 
 
@@ -15,7 +15,7 @@ class UploadService:
     def save_uploaded_file(file: UploadFile) -> str:
         """Valida e guarda um ficheiro no disco, retornando o nome único gerado."""
         if file.content_type not in ALLOWED_EXTENSIONS:
-            raise ValueError("Formato inválido. Apenas JPG e PNG são permitidos.")
+            raise ValueError("Formato inválido. Apenas JPG, PNG e WEBP são permitidos.")
 
         if file.size and file.size > MAX_FILE_SIZE:
             raise ValueError("O ficheiro é demasiado grande. O limite máximo é de 5MB.")
