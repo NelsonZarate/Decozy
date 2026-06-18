@@ -142,6 +142,14 @@ class SavedItemResult(BaseModel):
 
 class PromptArchitectureResult(BaseModel):
     status: Literal["valid", "rejected"]
+    intent: Literal["add", "remove", "none"] = Field(
+        default="none", 
+        description="Whether the user wants to add items, remove items, or make no changes."
+    )
+    items_to_add: list[str] = Field(
+        default_factory=list, 
+        description="List of specific new items the user wants to add. Empty if intent is not 'add'."
+    )
     optimized_prompt: str | None = None
     reason: str | None = None
 
@@ -152,8 +160,8 @@ class PromptArchitectureResult(BaseModel):
                 raise ValueError("Rejected prompt results must include a reason.")
             return self
 
-        if not self.optimized_prompt:
-            raise ValueError("Valid prompt results must include optimized_prompt.")
+        if self.intent in ["add", "remove"] and not self.optimized_prompt:
+            raise ValueError("Valid modification prompts must include optimized_prompt.")
         return self
 
 
@@ -233,15 +241,15 @@ def build_prompt_architect_crew() -> Crew:
     prompt_architect = Agent(
         role="Interior Prompt Architect",
         goal=(
-            "Validate whether the user's request is about interior decoration and "
-            "transform valid requests into precise Flux-ready image prompts."
+            "Analyze the user's request to determine if they want to modify an existing room. "
+            "Extract any items they want to add, identify if they want to remove items, or "
+            "flag if no changes are requested."
         ),
         backstory=(
             "You are a meticulous creative director for AI interior imagery. "
-            "You understand spatial design, furniture language, lighting, materials, "
-            "and the constraints of image generation systems. You reject prompts that "
-            "are not about interior decoration, and when a prompt is valid you rewrite "
-            "it into a clear, production-ready instruction for Flux."
+            "You only trigger image modifications if the user explicitly asks to add or remove something. "
+            "If they just comment on the room, you set the intent to 'none'. "
+            "When modifications are requested, you write precise Flux-ready image prompts."
         ),
         llm=llm,
         verbose=True,
@@ -251,20 +259,19 @@ def build_prompt_architect_crew() -> Crew:
     validate_and_optimize_prompt = Task(
         description=(
             "Review this user prompt: {user_prompt}\n\n"
-            "Decide whether it is about interior decoration, home styling, furniture, "
-            "materials, lighting, room layout, or decor. If it is not about interior "
-            "decoration, say it is invalid and explain briefly. If it is valid, produce "
-            "an optimized Flux image prompt with concrete details about style, room type, "
-            "materials, furniture, lighting, color palette, composition, and quality."
+            "1. Is it about interior decoration? If not, status is 'rejected' with a reason.\n"
+            "2. If valid, what is the intent? Did they ask to 'add' an item, 'remove' an item, or 'none' (just chatting/no changes)?\n"
+            "3. If intent is 'add', list the explicit items they asked for in 'items_to_add'.\n"
+            "4. If intent is 'add' or 'remove', write an optimized Flux prompt reflecting this change.\n"
+            "5. If intent is 'none', optimized_prompt can be null."
         ),
         expected_output=(
-            "Strict JSON only. If valid, return "
-            '{"status":"valid","optimized_prompt":"..."}. If invalid, return '
-            '{"status":"rejected","reason":"..."}.'
+            "Strict JSON matching the PromptArchitectureResult schema. Example for adding: "
+            '{"status":"valid","intent":"add","items_to_add":["red rug"],"optimized_prompt":"..."}'
         ),
         agent=prompt_architect,
         output_json=PromptArchitectureResult,
-        callback=_log_task_result("Agente 1"),
+        callback=_log_task_result("Agente 1 - Architect"),
     )
 
     return Crew(
@@ -273,7 +280,6 @@ def build_prompt_architect_crew() -> Crew:
         process=Process.sequential,
         verbose=True,
     )
-
 
 def build_asset_crew(
     project_id: int,
@@ -288,13 +294,14 @@ def build_asset_crew(
     asset_specialist = Agent(
         role="Interior E-commerce Asset Specialist",
         goal=(
-            "Invent one realistic shoppable furniture or decor asset for the generated "
-            "room image, save it with the database tool, and return strict JSON only."
+            "Create realistic shoppable furniture or decor assets specifically for the items "
+            "requested by the user, save them using the database tool, and return strict JSON."
         ),
         backstory=(
             "You are a product curator for an interior design marketplace. "
-            "You turn generated room concepts into believable e-commerce assets with "
+            "You turn requested room additions into believable e-commerce assets with "
             "clear names, practical categories, plausible prices, and purchase links. "
+            "You ONLY create assets for the specific items you are told to create in the prompt. "
             "You are disciplined about structured data: when asked for JSON, you return "
             "only valid JSON with no prose, comments, markdown, or code fences."
         ),
@@ -309,8 +316,10 @@ def build_asset_crew(
         description=(
             "The image was generated by Flux from this optimized prompt: {optimized_prompt}\n\n"
             "Generated image URL: {generated_image_url}\n\n"
-            "Invent exactly one furniture or decor item that fits the generated room. "
-            "You must call the save_recommended_furniture_item tool with name, category, "
+            "CRITICAL INSTRUCTION: The user explicitly requested to add these items: {items_to_create}\n\n"
+            "Focus on the primary item from that list. Invent a realistic e-commerce asset for it "
+            "that fits the generated room. "
+            "You must call the 'save_recommended_furniture_item' tool with name, category, "
             "price, and buy_url. After the tool succeeds, return exactly the JSON returned "
             "by the tool."
         ),
@@ -321,7 +330,7 @@ def build_asset_crew(
         ),
         agent=asset_specialist,
         output_json=SavedItemResult,
-        callback=_log_task_result("Agente 2"),
+        callback=_log_task_result("Agente 2 - Asset Specialist"),
     )
 
     return Crew(
