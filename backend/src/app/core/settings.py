@@ -24,9 +24,17 @@ class Settings(BaseSettings):
     google_client_id: str
     google_client_secret: str
     google_redirect_uri: str
-    
+
     # API KEY
     nvidia_api_key: str
+    openai_api_key: str
+    groq_api_key: str | None = None
+    groq_model: str = "llama-3.3-70b-versatile"
+
+    # Stripe
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    frontend_url: str = "http://localhost:3000"
 
     model_config = {
         "env_file": ".env",

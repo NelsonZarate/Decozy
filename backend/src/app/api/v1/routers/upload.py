@@ -1,5 +1,6 @@
+"""Upload router for image processing and AI generation."""
+
 import os
-import time
 
 from fastapi import (
     APIRouter,
@@ -14,110 +15,118 @@ from fastapi import (
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user_id
+from app.core.logging import get_logger
 from app.core.settings import settings
 from app.database.session import SessionLocal, get_db
 from app.models.project import GenerationModel, ProjectImageModel, ProjectModel
 from app.services.ai_service import AIService
+from app.services.crewai_service import (
+    build_asset_crew,
+    build_prompt_architect_crew,
+    parse_prompt_architect_result,
+)
 from app.services.upload import UploadService
+
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/uploads", tags=["Uploads"])
 
 
 def process_image_with_ai_background(
-    project_id: int, generation_id: int, filename: str
-):
+    project_id: int,
+    generation_id: int,
+    filename: str,
+    user_prompt: str,
+) -> None:
+    """Background task: optimize prompt, generate image, create assets.
+
+    Args:
+        project_id: ID of the project being processed.
+        generation_id: ID of the generation record.
+        filename: Uploaded image filename.
+        user_prompt: Original user prompt text.
     """
-    Função em background: Executa a IA e guarda o resultado fisicamente e na DB.
-    """
-    # IMPORTANTE: Abrir uma nova sessão DB dentro da Background Task
     db: Session = SessionLocal()
 
     input_path = os.path.join(settings.upload_dir, filename)
     output_filename = f"ai_empty_{filename}"
     output_path = os.path.join(settings.upload_dir, output_filename)
     output_url = f"/static/uploads/{output_filename}"
-    
-    #Processamento da imagem com dados MOCKS
+
     try:
-        print(f"[Project {project_id}] 🛑 MOCK ATIVADO: A simular IA para poupar créditos da NVIDIA...")
-        
-        # ⏳ Simula que a IA demora 3 segundos a processar a imagem
-        time.sleep(3)
+        logger.info("Project %d: Starting prompt optimization", project_id)
+        prompt_crew = build_prompt_architect_crew()
+        prompt_crew_result = prompt_crew.kickoff(inputs={"user_prompt": user_prompt})
+        logger.info("Project %d: Prompt Architect finished", project_id)
 
-        # 💸 COMENTADO PARA POUPAR CRÉDITOS:
-        # image_bytes = AIService.remove_furniture_from_image(input_path)
+        prompt_result = parse_prompt_architect_result(prompt_crew_result)
+        logger.debug("Project %d: Architect result: %s", project_id, prompt_result.model_dump())
 
-        # 🛠️ MOCK: Em vez de chamar a IA, lemos a imagem original que fizeste upload
-        # e guardamo-la como se fosse o resultado da IA (assim o teu disco continua a ter o ficheiro!)
-        with open(input_path, "rb") as f_in:
-            image_bytes = f_in.read()
+        if prompt_result.status == "rejected":
+            raise ValueError(f"Prompt rejeitado: {prompt_result.reason}")
+        optimized_prompt = prompt_result.optimized_prompt
+        if not optimized_prompt:
+            raise ValueError("O Agente 1 não devolveu optimized_prompt.")
 
-        # 1. Grava o resultado simulado com o prefixo 'ai_empty_' no disco
+        logger.info("Project %d: Generating image with prompt: %s", project_id, optimized_prompt)
+        image_bytes = AIService.generate_image_with_flux(
+            input_image_path=input_path,
+            optimized_prompt=optimized_prompt,
+        )
+
         with open(output_path, "wb") as f_out:
             f_out.write(image_bytes)
 
-        # 2. Grava a nova imagem na BD (image_type = 'generated')
         new_image = ProjectImageModel(
-            project_id=project_id, image_type="generated", image_url=output_url
+            project_id=project_id,
+            image_type="generated",
+            image_url=output_url,
         )
         db.add(new_image)
+        db.commit()
+        logger.info("Project %d: Generated image saved: %s", project_id, output_url)
 
-        # 3. Atualiza a Geração para completed
-        generation = (
-            db.query(GenerationModel)
-            .filter(GenerationModel.id == generation_id)
-            .first()
-        )
+        # Create items for each requested addition
+        if prompt_result.intent == "add" and prompt_result.items_to_add:
+            for item_name in prompt_result.items_to_add:
+                logger.info("Project %d: Creating asset for: %s", project_id, item_name)
+                try:
+                    asset_crew = build_asset_crew(
+                        project_id=project_id,
+                        generated_image_url=output_url,
+                    )
+                    asset_crew.kickoff(
+                        inputs={
+                            "optimized_prompt": optimized_prompt,
+                            "generated_image_url": output_url,
+                            "items_to_create": item_name,
+                        }
+                    )
+                except Exception as asset_err:
+                    logger.error("Project %d: Failed to create asset '%s': %s", project_id, item_name, asset_err)
+            logger.info("Project %d: Item creation completed", project_id)
+        else:
+            logger.info("Project %d: Intent is '%s', skipping item creation", project_id, prompt_result.intent)
+
+        generation = db.query(GenerationModel).filter(GenerationModel.id == generation_id).first()
         if generation:
             generation.status = "completed"
             generation.output_url = output_url
+            generation.error_message = None
 
         db.commit()
-        print(f"🎉 [MOCK SUCCESS] Imagem gravada e BD atualizada com sucesso: {output_url}")
-
-    # Tenta processar a imagem com a IA
-    # try:
-    #     print(f"[Project {project_id}] A iniciar IA para o ficheiro {filename}...")
-    #     image_bytes = AIService.remove_furniture_from_image(input_path)
-
-    #     # 1. Grava o resultado com o prefixo 'ai_empty_' no disco
-    #     with open(output_path, "wb") as f:
-    #         f.write(image_bytes)
-
-    #     # 2. Grava a nova imagem na BD (image_type = 'generated')
-    #     new_image = ProjectImageModel(
-    #         project_id=project_id, image_type="generated", image_url=output_url
-    #     )
-    #     db.add(new_image)
-
-    #     # 3. Atualiza a Geração para completed
-    #     generation = (
-    #         db.query(GenerationModel)
-    #         .filter(GenerationModel.id == generation_id)
-    #         .first()
-    #     )
-    #     if generation:
-    #         generation.status = "completed"
-    #         generation.output_url = output_url
-
-    #     db.commit()
-    #     print(f"Sucesso! Imagem gravada e BD atualizada: {output_url}")
+        logger.info("Project %d: Processing completed successfully", project_id)
 
     except Exception as e:
         db.rollback()
-        print(f"Falha ao processar {filename} em background: {str(e)}")
-        # Em caso de falha, marca como failed na BD
-        generation = (
-            db.query(GenerationModel)
-            .filter(GenerationModel.id == generation_id)
-            .first()
-        )
+        logger.error("Failed to process %s: %s", filename, e)
+        generation = db.query(GenerationModel).filter(GenerationModel.id == generation_id).first()
         if generation:
             generation.status = "failed"
             generation.error_message = str(e)
             db.commit()
     finally:
-        db.close()  # Garante que a sessão DB fecha
+        db.close()
 
 
 @router.post("/")
@@ -127,56 +136,72 @@ async def upload_image(
     user_prompt: str = Form(...),
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
-):
+) -> dict:
+    """Upload an image and start AI background processing.
+
+    Args:
+        background_tasks: FastAPI background tasks.
+        file: Uploaded image file.
+        user_prompt: User's text instruction.
+        db: Database session.
+        current_user_id: Authenticated user ID.
+
+    Returns:
+        Dict with project_id and processing status.
+
+    Raises:
+        HTTPException: On validation or server errors.
+    """
     try:
-        # 1. Valida e guarda a imagem original fisicamente
         filename = UploadService.save_uploaded_file(file)
         original_url = f"/static/uploads/{filename}"
 
-        # 2. Criar o Projeto na Base de Dados
         new_project = ProjectModel(user_id=current_user_id, title="Novo Projeto Decozy")
         db.add(new_project)
         db.commit()
         db.refresh(new_project)
 
-        # 3. Criar a Imagem Original na Base de Dados
         original_image = ProjectImageModel(
-            project_id=new_project.id, image_type="original", image_url=original_url
+            project_id=new_project.id,
+            image_type="original",
+            image_url=original_url,
         )
         db.add(original_image)
 
-        # 4. Criar a Geração com status processing
         new_generation = GenerationModel(
             project_id=new_project.id,
             prompt=user_prompt,
             status="processing",
-            provider="nvidia-flux",
+            provider="openai",
         )
         db.add(new_generation)
         db.commit()
         db.refresh(new_generation)
 
-        # 5. Despacha o processamento da IA para segundo plano
         background_tasks.add_task(
             process_image_with_ai_background,
             project_id=new_project.id,
             generation_id=new_generation.id,
             filename=filename,
+            user_prompt=user_prompt,
         )
 
-        # 6. Responde imediatamente ao Frontend com o ID do projeto
+        logger.info("Upload accepted for project %d", new_project.id)
         return {
             "message": "Upload efetuado. Em processamento...",
             "project_id": new_project.id,
             "status": "processing",
+            "user_prompt": user_prompt,
         }
 
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
         db.rollback()
+        logger.error("Upload failed: %s", e)
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+        ) from e
     finally:
         file.file.close()
