@@ -1,6 +1,17 @@
+"use client";
+
+import { useUpload } from "@/components/ui/UploadContext";
+
 export function GenerateButton() {
+  const { canGenerate, startGeneration } = useUpload();
+
   return (
-    <button className="w-full py-3.5 bg-primary-container text-on-primary rounded-md font-semibold text-sm tracking-[0.05em] flex items-center justify-center gap-2 hover:bg-primary active:scale-[0.98] transition-all">
+    <button
+      type="button"
+      onClick={startGeneration}
+      disabled={!canGenerate}
+      className="w-full py-3.5 bg-primary-container text-on-primary rounded-md font-semibold text-sm tracking-[0.05em] flex items-center justify-center gap-2 hover:bg-primary active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+    >
       <svg
         width="20"
         height="20"

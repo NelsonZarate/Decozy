@@ -5,6 +5,8 @@
   --surface: #faf9f7;
   --surface-dim: #dadad8;
   --surface-bright: #faf9f7;
+  /* Page content background: a hair darker than --surface. */
+  --surface-page: #f3f2ef;
   --surface-container-lowest: #ffffff;
   --surface-container-low: #f4f3f1;
   --surface-container: #efeeec;
@@ -54,6 +56,7 @@
   /* Colors */
   --color-surface: var(--surface);
   --color-surface-dim: var(--surface-dim);
+  --color-surface-page: var(--surface-page);
   --color-surface-container-lowest: var(--surface-container-lowest);
   --color-surface-container-low: var(--surface-container-low);
   --color-surface-container: var(--surface-container);

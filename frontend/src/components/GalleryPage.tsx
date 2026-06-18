@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BeforeAfterSlider } from "@/components/ui/BeforeAfterSlider";
+import { useProjects } from "@/components/projects/ProjectsContext";
 import galleryData from "@/data/gallery-mock.json";
 
 const filters = ["All Projects", "Living Room", "Bedroom", "Scandinavian", "Industrial"];
@@ -9,8 +10,27 @@ const filters = ["All Projects", "Living Room", "Bedroom", "Scandinavian", "Indu
 export function GalleryPage() {
   const [activeFilter, setActiveFilter] = useState("All Projects");
   const [search, setSearch] = useState("");
+  const { projects: generatedProjects } = useProjects();
 
-  const projects = galleryData.projects.filter((p) => {
+  // Generated projects first, then the static mock gallery.
+  const allProjects = [...generatedProjects, ...galleryData.projects];
+
+  // Highlight + scroll to a specific project when arriving via ?project=<id>.
+  const [highlightId, setHighlightId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("project");
+  });
+  const cardRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
+
+  useEffect(() => {
+    if (!highlightId) return;
+    const el = cardRefs.current.get(highlightId);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    const timeout = setTimeout(() => setHighlightId(null), 2600);
+    return () => clearTimeout(timeout);
+  }, [highlightId, generatedProjects.length]);
+
+  const projects = allProjects.filter((p) => {
     if (activeFilter !== "All Projects") {
       if (p.room !== activeFilter && p.style !== activeFilter) return false;
     }
@@ -71,7 +91,17 @@ export function GalleryPage() {
       {/* Project cards */}
       <div className="flex flex-col gap-6">
         {projects.map((project) => (
-          <div key={project.id} className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-outline-variant/20">
+          <div
+            key={project.id}
+            ref={(el) => {
+              cardRefs.current.set(project.id, el);
+            }}
+            className={`bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border transition-all duration-500 ${
+              highlightId === project.id
+                ? "border-secondary ring-2 ring-secondary"
+                : "border-outline-variant/20"
+            }`}
+          >
             <BeforeAfterSlider
               beforeImage={project.beforeImage}
               afterImage={project.afterImage}
