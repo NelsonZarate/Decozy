@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
+import { useUpload } from "@/components/ui/UploadContext";
 
 const styles = [
   {
@@ -59,11 +59,16 @@ const styles = [
 ];
 
 export function StyleSelector() {
-  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+  const { imageUrl, selectedStyle, setSelectedStyle } = useUpload();
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
-      {styles.map((style) => (
+    <div className="flex gap-3 overflow-x-auto py-2.5 -mx-2 px-2 scrollbar-hide">
+      {styles.map((style) => {
+        // The "Keep Current" card mirrors the uploaded/captured image.
+        const isKeepCurrent = style.name === "Keep Current";
+        const effectiveImage = isKeepCurrent ? imageUrl : style.image;
+
+        return (
         <button
           key={style.name}
           onClick={() => setSelectedStyle(style.name)}
@@ -73,12 +78,13 @@ export function StyleSelector() {
               : ""
           }`}
         >
-          {style.image ? (
+          {effectiveImage ? (
             <Image
-              src={style.image}
+              src={effectiveImage}
               alt={style.name}
               fill
               sizes="150px"
+              unoptimized={isKeepCurrent}
               className="object-cover"
             />
           ) : (
@@ -94,7 +100,8 @@ export function StyleSelector() {
             {style.name}
           </span>
         </button>
-      ))}
+        );
+      })}
     </div>
   );
 }

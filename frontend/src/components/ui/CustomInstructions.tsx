@@ -1,7 +1,15 @@
+"use client";
+
+import { useUpload } from "@/components/ui/UploadContext";
+
 export function CustomInstructions() {
+  const { instructions, setInstructions } = useUpload();
+
   return (
     <div className="relative">
       <textarea
+        value={instructions}
+        onChange={(e) => setInstructions(e.target.value)}
         placeholder="E.g., Keep the existing sofa but change the wall colors to something warmer..."
         className="w-full h-32 p-4 pr-12 border border-outline-variant rounded-md text-sm text-on-surface placeholder-outline resize-none focus:outline-none focus:ring-1 focus:ring-primary-container focus:border-primary-container bg-surface-container-lowest"
       />
