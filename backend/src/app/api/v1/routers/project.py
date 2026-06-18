@@ -1,50 +1,60 @@
+"""Project management router."""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.database.session import get_db
-from app.models.project import ProjectModel, GenerationModel, ProjectImageModel
+
 from app.api.deps import get_current_user_id
+from app.database.session import get_db
+from app.models.item import ItemModel
+from app.models.project import GenerationModel, ProjectImageModel, ProjectModel
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
-@router.get("/list_projects", status_code=status.HTTP_201_CREATED)
+
+@router.get("/list_projects", status_code=status.HTTP_200_OK)
 async def list_projects(
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
-):
+) -> list:
+    """List all projects for the authenticated user.
+
+    Args:
+        db: Database session.
+        current_user_id: Authenticated user ID.
+
+    Returns:
+        List of project objects.
     """
-    Lista todos os projetos do utilizador autenticado.
-    """
-    projects = (
-        db.query(ProjectModel)
-        .filter(ProjectModel.user_id == current_user_id)
-        .all()
-    )
-    return projects
+    return db.query(ProjectModel).filter(ProjectModel.user_id == current_user_id).all()
+
 
 @router.get("/get_project/{project_id}", status_code=status.HTTP_200_OK)
 async def get_project_details(
     project_id: int,
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
-):
+) -> dict:
+    """Get project details including generation status and images.
+
+    Args:
+        project_id: Target project ID.
+        db: Database session.
+        current_user_id: Authenticated user ID.
+
+    Returns:
+        Project details with generation status and image list.
+
+    Raises:
+        HTTPException: If project not found or unauthorized.
     """
-    Retorna os detalhes de um projeto específico, incluindo o estado da geração
-    e todas as imagens associadas (original e gerada).
-    """
-    # 1. Procura o projeto na BD e garante que pertence ao utilizador autenticado
     project = (
         db.query(ProjectModel)
         .filter(ProjectModel.id == project_id, ProjectModel.user_id == current_user_id)
         .first()
     )
-
     if not project:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Projeto não encontrado ou não tem permissão para aceder.",
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado.")
 
-    # 2. Procura o estado da última geração deste projeto
     generation = (
         db.query(GenerationModel)
         .filter(GenerationModel.project_id == project_id)
@@ -52,14 +62,8 @@ async def get_project_details(
         .first()
     )
 
-    # 3. Procura todas as imagens associadas a este projeto
-    images = (
-        db.query(ProjectImageModel)
-        .filter(ProjectImageModel.project_id == project_id)
-        .all()
-    )
+    images = db.query(ProjectImageModel).filter(ProjectImageModel.project_id == project_id).all()
 
-    # 4. Organiza a resposta para o Frontend ficar super feliz
     return {
         "id": project.id,
         "title": project.title,
@@ -67,24 +71,25 @@ async def get_project_details(
         "created_at": project.created_at,
         "generation_status": generation.status if generation else "unknown",
         "generation_error": generation.error_message if generation else None,
-        "images": [
-            {
-                "id": img.id,
-                "type": img.image_type,  # 'original' ou 'generated'
-                "url": img.image_url     # ex: '/static/uploads/ai_empty_...'
-            }
-            for img in images
-        ]
+        "images": [{"id": img.id, "type": img.image_type, "url": img.image_url} for img in images],
     }
+
 
 @router.post("/create_project", status_code=status.HTTP_201_CREATED)
 async def create_project(
     title: str,
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
-):
-    """
-    Cria um novo projeto para o utilizador autenticado.
+) -> ProjectModel:
+    """Create a new project.
+
+    Args:
+        title: Project title.
+        db: Database session.
+        current_user_id: Authenticated user ID.
+
+    Returns:
+        Created project object.
     """
     new_project = ProjectModel(user_id=current_user_id, title=title)
     db.add(new_project)
@@ -93,34 +98,79 @@ async def create_project(
     return new_project
 
 
+@router.get("/get_project_items/{project_id}", status_code=status.HTTP_200_OK)
+async def get_project_items(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
+) -> list[dict]:
+    """List all items for a project.
+
+    Args:
+        project_id: Target project ID.
+        db: Database session.
+        current_user_id: Authenticated user ID.
+
+    Returns:
+        List of item dicts with id, name, category, price, image_url, buy_url.
+
+    Raises:
+        HTTPException: If project not found or unauthorized.
+    """
+    project = (
+        db.query(ProjectModel)
+        .filter(ProjectModel.id == project_id, ProjectModel.user_id == current_user_id)
+        .first()
+    )
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado.")
+
+    items = db.query(ItemModel).filter(ItemModel.project_id == project_id).all()
+    return [
+        {
+            "id": item.id,
+            "name": item.name,
+            "category": item.category,
+            "price": item.price,
+            "image_url": item.image_url,
+            "buy_url": item.buy_url,
+        }
+        for item in items
+    ]
+
+
 @router.put("/change_project_title/{project_id}", status_code=status.HTTP_200_OK)
 async def change_project_title(
     project_id: int,
     new_title: str,
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
-):
+) -> ProjectModel:
+    """Update a project's title.
+
+    Args:
+        project_id: Target project ID.
+        new_title: New title string.
+        db: Database session.
+        current_user_id: Authenticated user ID.
+
+    Returns:
+        Updated project object.
+
+    Raises:
+        HTTPException: If project not found or unauthorized.
     """
-    Altera o título de um projeto específico.
-    """
-    # 1. Procura o projeto na BD e garante que pertence ao utilizador autenticado
     project = (
         db.query(ProjectModel)
         .filter(ProjectModel.id == project_id, ProjectModel.user_id == current_user_id)
         .first()
     )
-
     if not project:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Projeto não encontrado ou não tem permissão para alterar.",
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado.")
 
-    # 2. Atualiza o título do projeto
     project.title = new_title
     db.commit()
     db.refresh(project)
-
     return project
 
 
@@ -129,30 +179,31 @@ async def delete_project(
     project_id: int,
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
-):
+) -> dict:
+    """Delete a project and all associated data.
+
+    Args:
+        project_id: Target project ID.
+        db: Database session.
+        current_user_id: Authenticated user ID.
+
+    Returns:
+        Success message.
+
+    Raises:
+        HTTPException: If project not found or unauthorized.
     """
-    Apaga um projeto específico, incluindo todas as imagens associadas.
-    """
-    # 1. Procura o projeto na BD e garante que pertence ao utilizador autenticado
     project = (
         db.query(ProjectModel)
         .filter(ProjectModel.id == project_id, ProjectModel.user_id == current_user_id)
         .first()
     )
-
     if not project:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Projeto não encontrado ou não tem permissão para apagar.",
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado.")
 
-    # 2. Apaga todas as imagens associadas a este projeto
+    db.query(ItemModel).filter(ItemModel.project_id == project_id).delete()
     db.query(ProjectImageModel).filter(ProjectImageModel.project_id == project_id).delete()
-
-    # 3. Apaga todas as gerações associadas a este projeto
     db.query(GenerationModel).filter(GenerationModel.project_id == project_id).delete()
-
-    # 4. Apaga o próprio projeto
     db.delete(project)
     db.commit()
 

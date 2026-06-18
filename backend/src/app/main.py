@@ -1,11 +1,15 @@
 import os
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.api import api_router
+from app.core.logging import setup_logging
 from app.core.settings import settings
-from fastapi.middleware.cors import CORSMiddleware
+
+setup_logging(level="INFO" if settings.environment == "production" else "DEBUG")
+
 app = FastAPI(title="Decozy API")
 
 os.makedirs(settings.upload_dir, exist_ok=True)

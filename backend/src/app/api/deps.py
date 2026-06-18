@@ -1,3 +1,5 @@
+"""Shared FastAPI dependencies for authentication and authorization."""
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
@@ -7,17 +9,24 @@ from app.core.settings import settings
 from app.database.session import get_db
 from app.models.user import UserModel
 
-# Define onde o FastAPI deve procurar o token em caso de documentação no Swagger
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
 def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
-    """Dependência Global para extrair apenas o ID do utilizador do JWT"""
+    """Extract and validate user ID from JWT token.
+
+    Args:
+        token: Bearer token from Authorization header.
+
+    Returns:
+        Authenticated user's ID.
+
+    Raises:
+        HTTPException: If token is invalid or expired.
+    """
     try:
-        payload = jwt.decode(
-            token, settings.secret_key, algorithms=[settings.algorithm]
-        )
-        user_id: str = payload.get("sub")
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        user_id: str | None = payload.get("sub")
         if user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -32,12 +41,20 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
 
 
 def get_current_user(
-    user_id: int = Depends(get_current_user_id), db: Session = Depends(get_db)
+    user_id: int = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ) -> UserModel:
-    """
-    (Opcional, mas super útil!)
-    Dependência que vai à DB buscar o objeto User completo.
-    Útil para quando precisas de validar o plano (free/premium) numa rota.
+    """Fetch the full user object from the database.
+
+    Args:
+        user_id: Authenticated user ID from JWT.
+        db: Database session.
+
+    Returns:
+        User model instance.
+
+    Raises:
+        HTTPException: If user not found.
     """
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not user:
