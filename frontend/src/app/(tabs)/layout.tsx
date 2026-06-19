@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { HamburgerMenu } from "@/components/layout/HamburgerMenu";
 import { ProjectsProvider } from "@/components/projects/ProjectsContext";
 import { CartProvider } from "@/components/cart/CartContext";
+import { FavoritesProvider } from "@/components/favorites/FavoritesContext";
 import { FloatingCart } from "@/components/cart/FloatingCart";
 
 export default function TabsLayout({ children }: { children: React.ReactNode }) {
@@ -14,13 +15,15 @@ export default function TabsLayout({ children }: { children: React.ReactNode }) 
   return (
     <ProjectsProvider>
       <CartProvider>
-        <div className="flex flex-col min-h-screen max-w-md mx-auto w-full bg-surface lg:max-w-none">
-          <HamburgerMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
-          <Header onMenuClick={() => setMenuOpen(true)} />
-          <div className="flex-1 flex flex-col bg-surface-page">{children}</div>
-          <FloatingCart />
-          <BottomNav />
-        </div>
+        <FavoritesProvider>
+          <div className="flex flex-col min-h-screen max-w-md mx-auto w-full bg-surface lg:max-w-none">
+            <HamburgerMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+            <Header onMenuClick={() => setMenuOpen(true)} />
+            <div className="flex-1 flex flex-col bg-surface-page">{children}</div>
+            <FloatingCart />
+            <BottomNav />
+          </div>
+        </FavoritesProvider>
       </CartProvider>
     </ProjectsProvider>
   );

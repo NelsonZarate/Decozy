@@ -9,7 +9,23 @@
       "beforeImage": "https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=800&h=600&fit=crop&q=80",
       "afterImage": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&h=600&fit=crop&q=80",
       "status": "before_after",
-      "createdAt": "2026-06-01T10:00:00Z"
+      "createdAt": "2026-06-01T10:00:00Z",
+      "furniture": [
+        {
+          "id": "f1-sofa",
+          "name": "Scandi Oak Frame Sofa",
+          "category": "Seating",
+          "price": "$1,249",
+          "image": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=600&fit=crop"
+        },
+        {
+          "id": "f1-lamp",
+          "name": "Arc Minimalist Floor Lamp",
+          "category": "Lighting",
+          "price": "$320",
+          "image": "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=600&h=600&fit=crop"
+        }
+      ]
     },
     {
       "id": "2",
@@ -20,7 +36,16 @@
       "beforeImage": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop&q=80",
       "afterImage": "https://images.unsplash.com/photo-1604709177225-055f99402ea3?w=800&h=600&fit=crop&q=80",
       "status": "final_render",
-      "createdAt": "2026-05-28T14:30:00Z"
+      "createdAt": "2026-05-28T14:30:00Z",
+      "furniture": [
+        {
+          "id": "f2-chair",
+          "name": "Walnut Office Chair",
+          "category": "Seating",
+          "price": "$185",
+          "image": "https://images.unsplash.com/photo-1503602642458-232111445657?w=600&h=600&fit=crop"
+        }
+      ]
     },
     {
       "id": "3",
@@ -31,7 +56,23 @@
       "beforeImage": "https://images.unsplash.com/photo-1522444195799-478538b28823?w=800&h=600&fit=crop&q=80",
       "afterImage": "https://images.unsplash.com/photo-1545083036-b175dd155a1d?w=800&h=600&fit=crop&q=80",
       "status": "before_after",
-      "createdAt": "2026-05-25T09:15:00Z"
+      "createdAt": "2026-05-25T09:15:00Z",
+      "furniture": [
+        {
+          "id": "f3-bed",
+          "name": "Low Platform Oak Bed",
+          "category": "Bedroom",
+          "price": "$890",
+          "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&h=600&fit=crop"
+        },
+        {
+          "id": "f3-table",
+          "name": "Paper Lantern Nightstand",
+          "category": "Tables",
+          "price": "$140",
+          "image": "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=600&h=600&fit=crop"
+        }
+      ]
     },
     {
       "id": "4",
@@ -42,7 +83,23 @@
       "beforeImage": "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=800&h=600&fit=crop&q=80",
       "afterImage": "https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=800&h=600&fit=crop&q=80",
       "status": "final_render",
-      "createdAt": "2026-05-20T16:00:00Z"
+      "createdAt": "2026-05-20T16:00:00Z",
+      "furniture": [
+        {
+          "id": "f4-chair",
+          "name": "Rattan Accent Chair",
+          "category": "Seating",
+          "price": "$410",
+          "image": "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&h=600&fit=crop"
+        },
+        {
+          "id": "f4-table",
+          "name": "Whitewash Coffee Table",
+          "category": "Tables",
+          "price": "$520",
+          "image": "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=600&h=600&fit=crop"
+        }
+      ]
     }
   ]
 }
