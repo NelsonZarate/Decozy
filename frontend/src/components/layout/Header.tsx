@@ -1,12 +1,14 @@
 "use client";
 
+import { DesktopNav } from "@/components/layout/DesktopNav";
+
 interface HeaderProps {
   onMenuClick: () => void;
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
   return (
-    <header className="relative flex items-center justify-between px-4 py-4 sticky top-0 bg-surface z-10">
+    <header className="relative flex items-center justify-between px-4 py-4 sticky top-0 bg-surface z-10 lg:px-8 lg:py-5 lg:border-b lg:border-outline-variant/30">
       <button aria-label="Menu" className="p-1" onClick={onMenuClick}>
         <svg
           width="24"
@@ -23,11 +25,13 @@ export function Header({ onMenuClick }: HeaderProps) {
         </svg>
       </button>
 
-      <h1 className="absolute left-1/2 -translate-x-1/2 font-serif text-[28px] tracking-[0.3em] font-medium text-primary-container uppercase pointer-events-none">
+      <h1 className="absolute left-1/2 -translate-x-1/2 font-serif text-[28px] tracking-[0.3em] font-medium text-primary-container uppercase pointer-events-none lg:static lg:left-auto lg:translate-x-0 lg:ml-4 lg:text-[24px] lg:pointer-events-auto">
         DECOZY
       </h1>
 
-      <span className="w-[26px]" aria-hidden />
+      <DesktopNav />
+
+      <span className="w-[26px] lg:hidden" aria-hidden />
     </header>
   );
 }

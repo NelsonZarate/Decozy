@@ -11,7 +11,7 @@ export function CustomInstructions() {
         value={instructions}
         onChange={(e) => setInstructions(e.target.value)}
         placeholder="E.g., Keep the existing sofa but change the wall colors to something warmer..."
-        className="w-full h-32 p-4 pr-12 border border-outline-variant rounded-md text-sm text-on-surface placeholder-outline resize-none focus:outline-none focus:ring-1 focus:ring-primary-container focus:border-primary-container bg-surface-container-lowest"
+        className="w-full h-32 p-4 pr-12 border border-outline-variant rounded-md text-sm text-on-surface placeholder-outline resize-none focus:outline-none focus:ring-1 focus:ring-primary-container focus:border-primary-container bg-surface-container-lowest lg:h-44 lg:text-base lg:p-5 lg:pr-12 lg:rounded-lg"
       />
       <button
         aria-label="Voice input"

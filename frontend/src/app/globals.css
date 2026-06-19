@@ -110,3 +110,19 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/*
+ * Tailwind v4 no longer applies `cursor: pointer` to buttons by default.
+ * Restore the expected hand cursor on interactive elements (excluding
+ * disabled ones, which keep their not-allowed/default cursor).
+ */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  label[for],
+  summary,
+  a[href] {
+    cursor: pointer;
+  }
+}
+
