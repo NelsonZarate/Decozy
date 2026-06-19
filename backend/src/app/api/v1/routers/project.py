@@ -11,11 +11,11 @@ from app.models.project import GenerationModel, ProjectImageModel, ProjectModel
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
-@router.get("/list_projects", status_code=status.HTTP_200_OK)
+@router.get("/list_projects", status_code=status.HTTP_200_OK, response_model=None)
 async def list_projects(
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
-) -> list:
+):
     """List all projects for the authenticated user.
 
     Args:
@@ -25,7 +25,11 @@ async def list_projects(
     Returns:
         List of project objects.
     """
-    return db.query(ProjectModel).filter(ProjectModel.user_id == current_user_id).all()
+    projects = db.query(ProjectModel).filter(ProjectModel.user_id == current_user_id).all()
+    return [
+        {"id": p.id, "title": p.title, "is_favorite": p.is_favorite, "created_at": str(p.created_at)}
+        for p in projects
+    ]
 
 
 @router.get("/get_project/{project_id}", status_code=status.HTTP_200_OK)
@@ -75,12 +79,12 @@ async def get_project_details(
     }
 
 
-@router.post("/create_project", status_code=status.HTTP_201_CREATED)
+@router.post("/create_project", status_code=status.HTTP_201_CREATED, response_model=None)
 async def create_project(
     title: str,
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
-) -> ProjectModel:
+):
     """Create a new project.
 
     Args:
@@ -95,7 +99,7 @@ async def create_project(
     db.add(new_project)
     db.commit()
     db.refresh(new_project)
-    return new_project
+    return {"id": new_project.id, "title": new_project.title, "user_id": new_project.user_id, "created_at": str(new_project.created_at)}
 
 
 @router.get("/get_project_items/{project_id}", status_code=status.HTTP_200_OK)
@@ -139,13 +143,13 @@ async def get_project_items(
     ]
 
 
-@router.put("/change_project_title/{project_id}", status_code=status.HTTP_200_OK)
+@router.put("/change_project_title/{project_id}", status_code=status.HTTP_200_OK, response_model=None)
 async def change_project_title(
     project_id: int,
     new_title: str,
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
-) -> ProjectModel:
+):
     """Update a project's title.
 
     Args:
@@ -171,7 +175,7 @@ async def change_project_title(
     project.title = new_title
     db.commit()
     db.refresh(project)
-    return project
+    return {"id": project.id, "title": project.title, "user_id": project.user_id, "created_at": str(project.created_at)}
 
 
 @router.delete("/delete_project/{project_id}", status_code=status.HTTP_200_OK)
