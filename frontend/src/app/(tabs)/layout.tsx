@@ -14,7 +14,7 @@ export default function TabsLayout({ children }: { children: React.ReactNode }) 
   return (
     <ProjectsProvider>
       <CartProvider>
-        <div className="flex flex-col min-h-screen max-w-md mx-auto w-full bg-surface">
+        <div className="flex flex-col min-h-screen max-w-md mx-auto w-full bg-surface lg:max-w-none">
           <HamburgerMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
           <Header onMenuClick={() => setMenuOpen(true)} />
           <div className="flex-1 flex flex-col bg-surface-page">{children}</div>

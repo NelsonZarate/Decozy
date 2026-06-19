@@ -9,7 +9,7 @@ export function FloatingCart() {
   if (count === 0) return null;
 
   return (
-    <div className="pointer-events-none fixed bottom-24 left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-4">
+    <div className="pointer-events-none fixed bottom-24 left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-4 lg:bottom-8 lg:left-auto lg:right-8 lg:w-auto lg:max-w-none lg:translate-x-0 lg:px-0">
       <div className="flex justify-end">
         <button
           type="button"

@@ -62,7 +62,7 @@ export function StyleSelector() {
   const { imageUrl, selectedStyle, setSelectedStyle } = useUpload();
 
   return (
-    <div className="flex gap-3 overflow-x-auto py-2.5 -mx-2 px-2 scrollbar-hide">
+    <div className="flex gap-3 overflow-x-auto py-2.5 -mx-2 px-2 scrollbar-hide lg:gap-4">
       {styles.map((style) => {
         // The "Keep Current" card mirrors the uploaded/captured image.
         const isKeepCurrent = style.name === "Keep Current";
@@ -72,7 +72,7 @@ export function StyleSelector() {
         <button
           key={style.name}
           onClick={() => setSelectedStyle(style.name)}
-          className={`relative flex-shrink-0 w-[150px] h-[150px] rounded-lg overflow-hidden transition-all ${
+          className={`relative flex-shrink-0 w-[150px] h-[150px] rounded-lg overflow-hidden transition-all lg:w-[184px] lg:h-[184px] ${
             selectedStyle === style.name
               ? "ring-2 ring-secondary ring-offset-2 ring-offset-surface scale-105"
               : ""
@@ -96,7 +96,7 @@ export function StyleSelector() {
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-          <span className="absolute bottom-2 left-2 text-white text-[10px] font-semibold tracking-[0.03em]">
+          <span className="absolute bottom-2 left-2 text-white text-[10px] font-semibold tracking-[0.03em] lg:text-xs lg:bottom-2.5 lg:left-2.5">
             {style.name}
           </span>
         </button>

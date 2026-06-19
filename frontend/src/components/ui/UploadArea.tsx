@@ -116,7 +116,7 @@ export function UploadArea() {
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") handleAreaClick();
         }}
-        className="relative overflow-hidden border-2 border-dashed border-outline-variant rounded-lg flex flex-col items-center justify-center min-h-[210px] px-8 bg-surface-container-low cursor-pointer hover:border-secondary transition-colors"
+        className="relative overflow-hidden border-2 border-dashed border-outline-variant rounded-lg flex flex-col items-center justify-center min-h-[210px] px-8 bg-surface-container-low cursor-pointer hover:border-secondary transition-colors lg:min-h-[500px] lg:rounded-xl"
       >
         {imageUrl ? (
           <>
@@ -150,7 +150,7 @@ export function UploadArea() {
               fill="none"
               stroke="currentColor"
               strokeWidth="1.5"
-              className="text-on-surface-variant mb-3"
+              className="text-on-surface-variant mb-3 lg:w-16 lg:h-16 lg:mb-4"
             >
               <rect x="6" y="10" width="36" height="28" rx="3" />
               <circle cx="18" cy="22" r="4" />
@@ -159,7 +159,7 @@ export function UploadArea() {
               <line x1="35" y1="11" x2="37" y2="11" strokeWidth="2" />
               <line x1="36" y1="10" x2="36" y2="12" strokeWidth="2" />
             </svg>
-            <span className="text-sm font-medium text-on-surface-variant">
+            <span className="text-sm font-medium text-on-surface-variant lg:text-base">
               Tap to Camera or Gallery
             </span>
           </>
@@ -178,23 +178,23 @@ export function UploadArea() {
       {/* Source chooser action sheet */}
       {chooserOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 lg:items-center"
           onClick={() => setChooserOpen(false)}
         >
           <div
-            className="w-full max-w-md bg-surface rounded-t-2xl p-4 pb-6"
+            className="w-full max-w-md bg-surface rounded-t-2xl p-4 pb-6 lg:rounded-2xl lg:p-6 lg:m-4 lg:shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-outline-variant" />
-            <h3 className="font-serif text-lg font-medium text-primary-container mb-3 px-2">
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-outline-variant lg:hidden" />
+            <h3 className="font-serif text-lg font-medium text-primary-container mb-3 px-2 lg:text-xl lg:mb-4">
               Add a photo
             </h3>
 
             <button
               onClick={openCamera}
-              className="w-full flex items-center gap-3 px-4 py-4 rounded-xl text-sm font-medium text-on-surface hover:bg-surface-container-low transition-colors text-left"
+              className="w-full flex items-center gap-3 px-4 py-4 rounded-xl text-sm font-medium text-on-surface hover:bg-surface-container-low transition-colors text-left lg:text-base lg:gap-4"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-secondary">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-secondary lg:w-6 lg:h-6">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                 <circle cx="12" cy="13" r="4" />
               </svg>
@@ -203,9 +203,9 @@ export function UploadArea() {
 
             <button
               onClick={() => galleryInputRef.current?.click()}
-              className="w-full flex items-center gap-3 px-4 py-4 rounded-xl text-sm font-medium text-on-surface hover:bg-surface-container-low transition-colors text-left"
+              className="w-full flex items-center gap-3 px-4 py-4 rounded-xl text-sm font-medium text-on-surface hover:bg-surface-container-low transition-colors text-left lg:text-base lg:gap-4"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-secondary">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-secondary lg:w-6 lg:h-6">
                 <rect x="3" y="3" width="18" height="18" rx="2" />
                 <circle cx="9" cy="9" r="2" />
                 <path d="M21 15l-5-5L5 21" />
@@ -215,7 +215,7 @@ export function UploadArea() {
 
             <button
               onClick={() => setChooserOpen(false)}
-              className="w-full mt-2 py-3 rounded-xl text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low transition-colors"
+              className="w-full mt-2 py-3 rounded-xl text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low transition-colors lg:text-base"
             >
               Cancel
             </button>

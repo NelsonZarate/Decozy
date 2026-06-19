@@ -56,10 +56,10 @@ export function MyItemsPage() {
   };
 
   return (
-    <main className="flex-1 px-4 pb-24">
-      <section className="mb-4 mt-2 text-center">
-        <h2 className="font-serif text-2xl font-medium text-on-surface">My Items</h2>
-        <p className="text-xs text-on-surface-variant mt-1">
+    <main className="flex-1 px-4 pb-24 lg:max-w-6xl lg:mx-auto lg:w-full lg:px-8 lg:pt-4 lg:pb-12">
+      <section className="mb-4 mt-2 text-center lg:mb-8 lg:mt-4">
+        <h2 className="font-serif text-2xl font-medium text-on-surface lg:text-3xl">Favorites</h2>
+        <p className="text-xs text-on-surface-variant mt-1 lg:text-sm lg:mt-1.5">
           Your curated collection of furniture and decor from generated designs.
         </p>
       </section>
@@ -82,7 +82,7 @@ export function MyItemsPage() {
       </div>
 
       {/* Items grid */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
         {filtered.map((item) => (
           <div
             key={item.id}
@@ -112,15 +112,15 @@ export function MyItemsPage() {
                 </svg>
               </button>
             </div>
-            <div className="pt-3">
-              <span className="text-[10px] font-semibold tracking-widest text-on-surface-variant uppercase">
+            <div className="pt-3 lg:pt-4">
+              <span className="text-[10px] font-semibold tracking-widest text-on-surface-variant uppercase lg:text-[11px]">
                 {item.category}
               </span>
-              <h3 className="font-serif text-sm font-medium text-on-surface mt-0.5 truncate">
+              <h3 className="font-serif text-sm font-medium text-on-surface mt-0.5 truncate lg:text-base">
                 {item.name}
               </h3>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-sm font-semibold text-on-surface">{item.price}</span>
+              <div className="flex items-center justify-between mt-2 lg:mt-3">
+                <span className="text-sm font-semibold text-on-surface lg:text-base">{item.price}</span>
                 <button
                   onClick={() =>
                     addItem({
