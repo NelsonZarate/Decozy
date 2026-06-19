@@ -23,6 +23,8 @@ class UserModel(Base):
     plan: Mapped[str] = mapped_column(
         String, default="free", nullable=False
     )  # free, monthly, annual
+    tokens: Mapped[int] = mapped_column(Integer, default=2, nullable=False)
+    last_credited_session: Mapped[str | None] = mapped_column(String, nullable=True)
     daily_generations_count: Mapped[int] = mapped_column(
         Integer, default=0, nullable=False
     )
