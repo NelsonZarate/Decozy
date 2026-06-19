@@ -2,7 +2,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.database.session import Base, get_db
@@ -11,6 +11,23 @@ from app.main import app
 SQLALCHEMY_TEST_URL = "sqlite:///./test.db"
 
 engine = create_engine(SQLALCHEMY_TEST_URL, connect_args={"check_same_thread": False})
+
+# Map PostgreSQL JSONB to SQLite JSON at DDL level
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import JSON
+
+@event.listens_for(engine, "connect")
+def _set_sqlite_pragma(dbapi_conn, connection_record):
+    cursor = dbapi_conn.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
+# Monkey-patch JSONB columns to use JSON for SQLite tests
+for table in Base.metadata.tables.values():
+    for col in table.columns:
+        if isinstance(col.type, JSONB):
+            col.type = JSON()
+
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
