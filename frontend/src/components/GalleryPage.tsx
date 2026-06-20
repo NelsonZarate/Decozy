@@ -128,7 +128,6 @@ export function GalleryPage() {
             <BeforeAfterSlider
               beforeImage={project.beforeImage}
               afterImage={project.afterImage}
-              status={project.status}
             />
             <div className="p-4 lg:p-5">
               <div className="flex items-center justify-between">

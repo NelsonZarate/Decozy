@@ -4,15 +4,15 @@ import { useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
 import { useFavorites } from "@/components/favorites/FavoritesContext";
 
-const categories = ["All Items", "Seating", "Lighting", "Tables", "Bedroom", "Decor"];
+const categories = ["All", "Seating", "Lighting", "Tables", "Bedroom", "Decor"];
 
 export function MyItemsPage() {
   const { addItem } = useCart();
   const { favorites, toggleFavorite } = useFavorites();
-  const [activeCategory, setActiveCategory] = useState("All Items");
+  const [activeCategory, setActiveCategory] = useState("All");
 
   const filtered = favorites.filter(
-    (item) => activeCategory === "All Items" || item.category === activeCategory
+    (item) => activeCategory === "All" || item.category === activeCategory
   );
 
   return (
