@@ -5,10 +5,9 @@ import { useRef, useState, useCallback } from "react";
 interface BeforeAfterSliderProps {
   beforeImage: string;
   afterImage: string;
-  status: string;
 }
 
-export function BeforeAfterSlider({ beforeImage, afterImage, status }: BeforeAfterSliderProps) {
+export function BeforeAfterSlider({ beforeImage, afterImage }: BeforeAfterSliderProps) {
   const [position, setPosition] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
@@ -68,7 +67,7 @@ export function BeforeAfterSlider({ beforeImage, afterImage, status }: BeforeAft
         Before
       </span>
       <span className="absolute top-3 right-3 text-[10px] font-semibold bg-black/50 text-white px-2 py-0.5 rounded">
-        {status === "final_render" ? "✦ Final Render" : "After"}
+        After
       </span>
     </div>
   );

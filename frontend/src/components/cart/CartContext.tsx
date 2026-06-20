@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useState } from "react";
 
 export interface CartItem {
-  id: number;
+  id: string;
   name: string;
   category: string;
   price: string;
@@ -15,7 +15,7 @@ interface CartContextValue {
   /** Total number of items in the cart. */
   count: number;
   addItem: (item: CartItem) => void;
-  removeItem: (id: number) => void;
+  removeItem: (id: string) => void;
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
@@ -27,7 +27,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => [...prev, item]);
   }, []);
 
-  const removeItem = useCallback((id: number) => {
+  const removeItem = useCallback((id: string) => {
     setItems((prev) => {
       const index = prev.findIndex((i) => i.id === id);
       if (index === -1) return prev;

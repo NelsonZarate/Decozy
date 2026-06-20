@@ -3,14 +3,35 @@
 import { useEffect, useRef, useState } from "react";
 import { BeforeAfterSlider } from "@/components/ui/BeforeAfterSlider";
 import { useProjects } from "@/components/projects/ProjectsContext";
+import { useFavorites, type FavoriteItem } from "@/components/favorites/FavoritesContext";
 import galleryData from "@/data/gallery-mock.json";
 
 const filters = ["All Projects", "Living Room", "Bedroom", "Scandinavian", "Industrial"];
 
+/** Fallback furniture for projects that don't carry their own list (e.g. freshly generated ones). */
+const DEFAULT_FURNITURE: FavoriteItem[] = [
+  {
+    id: "accent-chair",
+    name: "Accent Lounge Chair",
+    category: "Seating",
+    price: "$390",
+    image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&h=600&fit=crop",
+  },
+];
+
+/** Furniture detected in a design. Projects from the mock JSON carry their own list. */
+function getFurniture(project: { id: string; furniture?: FavoriteItem[] }): FavoriteItem[] {
+  if (project.furniture && project.furniture.length > 0) return project.furniture;
+  // Keep ids unique per project so favoriting one doesn't highlight others.
+  return DEFAULT_FURNITURE.map((item) => ({ ...item, id: `${project.id}-${item.id}` }));
+}
+
 export function GalleryPage() {
   const [activeFilter, setActiveFilter] = useState("All Projects");
   const [search, setSearch] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const { projects: generatedProjects } = useProjects();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   // Generated projects first, then the static mock gallery.
   const allProjects = [...generatedProjects, ...galleryData.projects];
@@ -107,14 +128,37 @@ export function GalleryPage() {
             <BeforeAfterSlider
               beforeImage={project.beforeImage}
               afterImage={project.afterImage}
-              status={project.status}
             />
             <div className="p-4 lg:p-5">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-base text-on-surface lg:text-lg">{project.title}</h3>
-                <button className="text-outline p-1">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpandedId(expandedId === project.id ? null : project.id)
+                  }
+                  aria-expanded={expandedId === project.id}
+                  aria-label={
+                    expandedId === project.id
+                      ? "Hide furniture in this design"
+                      : "Show furniture in this design"
+                  }
+                  className="text-outline p-1 hover:text-on-surface transition-colors"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={`transition-transform duration-300 ${
+                      expandedId === project.id ? "rotate-180" : ""
+                    }`}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </button>
               </div>
@@ -126,6 +170,58 @@ export function GalleryPage() {
                   </span>
                 ))}
               </div>
+
+              {expandedId === project.id && (
+                <div className="mt-4 border-t border-outline-variant/20 pt-3 flex flex-col gap-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">
+                    Furniture in this design
+                  </p>
+                  {getFurniture(project).map((item) => {
+                    const fav = isFavorite(item.id);
+                    return (
+                      <div key={item.id} className="flex items-center gap-3">
+                        <div className="h-12 w-12 flex-shrink-0 rounded-lg overflow-hidden bg-[#f0efed]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-on-surface truncate">{item.name}</p>
+                          <p className="text-xs text-on-surface-variant">
+                            {item.category} • {item.price}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => toggleFavorite(item)}
+                          aria-pressed={fav}
+                          aria-label={
+                            fav
+                              ? `Remove ${item.name} from favorites`
+                              : `Add ${item.name} to favorites`
+                          }
+                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full hover:bg-surface-container-high transition-colors"
+                        >
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill={fav ? "#e23b3b" : "none"}
+                            stroke={fav ? "#e23b3b" : "currentColor"}
+                            strokeWidth="1.5"
+                            className={fav ? "" : "text-outline"}
+                          >
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                          </svg>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         ))}
