@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+import { ApiError, loginLocal } from "@/lib/api";
 
 export function SignInPage() {
   const router = useRouter();
@@ -13,16 +14,31 @@ export function SignInPage() {
   const [password, setPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const passwordValid = /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
+    setError(null);
     if (!emailValid || !passwordValid) return;
-    signIn({ name: "User", email });
-    router.push("/");
+    setLoading(true);
+    try {
+      const res = await loginLocal(email, password);
+      signIn({ name: email.split("@")[0], email }, res.access_token);
+      router.push("/");
+    } catch (err) {
+      setError(
+        err instanceof ApiError && err.status === 400
+          ? "Invalid email or password."
+          : "Could not sign in. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleGoogleSignIn() {
@@ -79,11 +95,15 @@ export function SignInPage() {
               </p>
             )}
           </div>
+          {error && (
+            <p className="text-[11px] text-error text-center -mt-1">{error}</p>
+          )}
           <button
             type="submit"
-            className="w-full py-3 rounded-xl font-semibold text-sm text-surface bg-primary-container hover:opacity-90 active:scale-[0.98] transition-all"
+            disabled={loading}
+            className="w-full py-3 rounded-xl font-semibold text-sm text-surface bg-primary-container hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-60"
           >
-            Sign In
+            {loading ? "Signing In..." : "Sign In"}
           </button>
         </form>
 

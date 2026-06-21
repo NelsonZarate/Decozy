@@ -7,6 +7,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { clearToken, getToken, setToken } from "@/lib/api";
 
 export interface AuthUser {
   name: string;
@@ -17,7 +18,11 @@ interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isReady: boolean;
-  signIn: (user: AuthUser) => void;
+  /**
+   * Persist the signed-in user. When a JWT `token` is provided it is stored so
+   * subsequent API calls are authenticated.
+   */
+  signIn: (user: AuthUser, token?: string) => void;
   signOut: () => void;
 }
 
@@ -29,11 +34,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isReady, setIsReady] = useState(false);
 
-  // Hydrate from localStorage on mount.
+  // Hydrate from localStorage on mount. A user is only considered signed in
+  // when both the stored profile and the JWT token are present.
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
+      if (stored && getToken()) {
         setUser(JSON.parse(stored) as AuthUser);
       }
     } catch {
@@ -42,13 +48,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsReady(true);
   }, []);
 
-  const signIn = useCallback((nextUser: AuthUser) => {
+  const signIn = useCallback((nextUser: AuthUser, token?: string) => {
+    if (token) setToken(token);
     setUser(nextUser);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
   }, []);
 
   const signOut = useCallback(() => {
     setUser(null);
+    clearToken();
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
