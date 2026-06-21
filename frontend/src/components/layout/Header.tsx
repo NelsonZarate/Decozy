@@ -1,6 +1,7 @@
 "use client";
 
 import { DesktopNav } from "@/components/layout/DesktopNav";
+import { CreditsBadge } from "@/components/layout/CreditsBadge";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -29,9 +30,10 @@ export function Header({ onMenuClick }: HeaderProps) {
         DECOZY
       </h1>
 
-      <DesktopNav />
-
-      <span className="w-[26px] lg:hidden" aria-hidden />
+      <div className="flex items-center gap-3 ml-auto">
+        <DesktopNav />
+        <CreditsBadge credits={5} />
+      </div>
     </header>
   );
 }
