@@ -9,19 +9,6 @@ interface HamburgerMenuProps {
   onClose: () => void;
 }
 
-const menuItems = [
-  {
-    id: "saved",
-    label: "Saved Items",
-    active: false,
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-      </svg>
-    ),
-  },
-];
-
 export function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
   const router = useRouter();
   const { user, isAuthenticated, signOut } = useAuth();
@@ -90,21 +77,19 @@ export function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
 
           {/* Menu Items */}
           <nav className="flex flex-col gap-1">
-            {menuItems.map((item) => (
-              <button
-                key={item.id}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors w-full text-left ${
-                  item.active
-                    ? "bg-secondary-container text-on-surface"
-                    : "text-on-surface-variant hover:bg-surface-container-low"
-                }`}
-              >
-                <span className={item.active ? "text-secondary" : "text-on-surface-variant"}>
-                  {item.icon}
-                </span>
-                {item.label}
-              </button>
-            ))}
+            <button
+              onClick={onClose}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-on-secondary bg-secondary hover:opacity-90 active:scale-[0.98] transition-all w-full text-left shadow-sm"
+            >
+              <span className="text-on-secondary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="12" cy="12" r="9" />
+                  <line x1="12" y1="8" x2="12" y2="16" />
+                  <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+              </span>
+              Add Credits
+            </button>
           </nav>
 
           {/* Sign Out pinned to the bottom */}
