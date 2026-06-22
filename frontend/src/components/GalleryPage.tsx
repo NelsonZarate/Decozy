@@ -4,7 +4,33 @@ import { useEffect, useRef, useState } from "react";
 import { BeforeAfterSlider } from "@/components/ui/BeforeAfterSlider";
 import { useProjects } from "@/components/projects/ProjectsContext";
 import { useFavorites, type FavoriteItem } from "@/components/favorites/FavoritesContext";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { changeProjectTitle } from "@/lib/api";
 import galleryData from "@/data/gallery-mock.json";
+
+/** Max length allowed for a project title. */
+const MAX_TITLE_LENGTH = 24;
+
+/** Only real backend projects (id like "p12") can be renamed via the API. */
+function isEditableProject(id: string): boolean {
+  return /^p\d+$/.test(id);
+}
+
+/**
+ * Trim a title to at most MAX_TITLE_LENGTH characters, preferring whole words:
+ * keep adding words while the running length stays within the limit; if a
+ * single first word already exceeds it, hard-slice to the limit.
+ */
+function truncateTitle(name: string): string {
+  if (name.length <= MAX_TITLE_LENGTH) return name;
+  let result = "";
+  for (const word of name.split(" ")) {
+    const candidate = result ? `${result} ${word}` : word;
+    if (candidate.length > MAX_TITLE_LENGTH) break;
+    result = candidate;
+  }
+  return result || name.slice(0, MAX_TITLE_LENGTH);
+}
 
 const filters = ["All Projects", "Living Room", "Bedroom", "Scandinavian", "Industrial"];
 
@@ -26,12 +52,66 @@ function getFurniture(project: { id: string; furniture?: FavoriteItem[] }): Favo
   return DEFAULT_FURNITURE.map((item) => ({ ...item, id: `${project.id}-${item.id}` }));
 }
 
+/** Format an ISO date string deterministically (locale/timezone independent)
+ *  so server and client render the same text and avoid hydration mismatches. */
+function formatDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
+  return `${months[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
+}
+
 export function GalleryPage() {
   const [activeFilter, setActiveFilter] = useState("All Projects");
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const { projects: generatedProjects } = useProjects();
+  const { projects: generatedProjects, loadProjects, updateProjectTitle } = useProjects();
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { isAuthenticated, isReady } = useAuth();
+
+  // Inline title editing state.
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftTitle, setDraftTitle] = useState("");
+  const [savingTitle, setSavingTitle] = useState(false);
+
+  function startEditTitle(project: { id: string; title: string }) {
+    setEditingId(project.id);
+    setDraftTitle(project.title.slice(0, MAX_TITLE_LENGTH));
+  }
+
+  function cancelEditTitle() {
+    setEditingId(null);
+    setDraftTitle("");
+  }
+
+  async function saveTitle(project: { id: string }) {
+    const title = draftTitle.trim().slice(0, MAX_TITLE_LENGTH);
+    if (!title) return;
+    const numericId = Number(project.id.replace(/^p/, ""));
+    setSavingTitle(true);
+    try {
+      await changeProjectTitle(numericId, title);
+      updateProjectTitle(project.id, title);
+      setEditingId(null);
+      setDraftTitle("");
+    } catch (err) {
+      console.error("[projects] rename failed:", err);
+    } finally {
+      setSavingTitle(false);
+    }
+  }
+
+  // Pull the user's real projects from the backend once authenticated.
+  useEffect(() => {
+    if (isReady && isAuthenticated) {
+      loadProjects().catch(() => {
+        // Network/auth failures fall back to whatever is already loaded.
+      });
+    }
+  }, [isReady, isAuthenticated, loadProjects]);
 
   // Generated projects first, then the static mock gallery.
   const allProjects = [...generatedProjects, ...galleryData.projects];
@@ -130,8 +210,53 @@ export function GalleryPage() {
               afterImage={project.afterImage}
             />
             <div className="p-4 lg:p-5">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-base text-on-surface lg:text-lg">{project.title}</h3>
+              <div className="flex items-center justify-between gap-2">
+                {editingId === project.id ? (
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <input
+                      type="text"
+                      value={draftTitle}
+                      maxLength={MAX_TITLE_LENGTH}
+                      autoFocus
+                      onChange={(e) => setDraftTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveTitle(project);
+                        if (e.key === "Escape") cancelEditTitle();
+                      }}
+                      className="min-w-0 flex-1 rounded-md border border-outline-variant bg-surface-container-lowest px-2 py-1 text-base font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary-container lg:text-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => saveTitle(project)}
+                      disabled={savingTitle}
+                      aria-label="Save project name"
+                      className="flex-shrink-0 p-1 text-secondary hover:opacity-70 disabled:opacity-40 transition-opacity"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <h3 className="font-semibold text-base text-on-surface truncate lg:text-lg">
+                      {truncateTitle(project.title)}
+                    </h3>
+                    {isEditableProject(project.id) && (
+                      <button
+                        type="button"
+                        onClick={() => startEditTitle(project)}
+                        aria-label="Edit project name"
+                        className="flex-shrink-0 p-1 text-outline hover:text-on-surface transition-colors"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 20h9" />
+                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() =>
@@ -162,14 +287,7 @@ export function GalleryPage() {
                   </svg>
                 </button>
               </div>
-              <p className="text-xs text-on-surface-variant mt-0.5">{project.room} • {project.style}</p>
-              <div className="flex gap-2 mt-2">
-                {project.tags.map((tag) => (
-                  <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full border border-outline-variant text-on-surface-variant">
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              <p className="text-xs text-on-surface-variant mt-0.5">{formatDate(project.createdAt)}</p>
 
               {expandedId === project.id && (
                 <div className="mt-4 border-t border-outline-variant/20 pt-3 flex flex-col gap-3">

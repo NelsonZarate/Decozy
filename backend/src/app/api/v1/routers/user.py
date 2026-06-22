@@ -25,11 +25,15 @@ async def list_saved_items(
     Returns:
         List of saved item records.
     """
-    return (
+    rows = (
         db.query(UserSavedItemModel)
         .filter(UserSavedItemModel.user_id == current_user_id)
         .all()
     )
+    return [
+        {"id": row.id, "user_id": row.user_id, "item_id": row.item_id}
+        for row in rows
+    ]
 
 
 @router.post("/save_item/{item_id}", status_code=status.HTTP_201_CREATED)

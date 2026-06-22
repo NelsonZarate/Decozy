@@ -12,14 +12,14 @@
       "createdAt": "2026-06-01T10:00:00Z",
       "furniture": [
         {
-          "id": "f1-sofa",
+          "id": "9001",
           "name": "Scandi Oak Frame Sofa",
           "category": "Seating",
           "price": "$1,249",
           "image": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=600&fit=crop"
         },
         {
-          "id": "f1-lamp",
+          "id": "9002",
           "name": "Arc Minimalist Floor Lamp",
           "category": "Lighting",
           "price": "$320",
@@ -39,7 +39,7 @@
       "createdAt": "2026-05-28T14:30:00Z",
       "furniture": [
         {
-          "id": "f2-chair",
+          "id": "9003",
           "name": "Walnut Office Chair",
           "category": "Seating",
           "price": "$185",
@@ -59,14 +59,14 @@
       "createdAt": "2026-05-25T09:15:00Z",
       "furniture": [
         {
-          "id": "f3-bed",
+          "id": "9004",
           "name": "Low Platform Oak Bed",
           "category": "Bedroom",
           "price": "$890",
           "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&h=600&fit=crop"
         },
         {
-          "id": "f3-table",
+          "id": "9005",
           "name": "Paper Lantern Nightstand",
           "category": "Tables",
           "price": "$140",
@@ -86,14 +86,14 @@
       "createdAt": "2026-05-20T16:00:00Z",
       "furniture": [
         {
-          "id": "f4-chair",
+          "id": "9006",
           "name": "Rattan Accent Chair",
           "category": "Seating",
           "price": "$410",
           "image": "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&h=600&fit=crop"
         },
         {
-          "id": "f4-table",
+          "id": "9007",
           "name": "Whitewash Coffee Table",
           "category": "Tables",
           "price": "$520",
