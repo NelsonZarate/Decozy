@@ -19,6 +19,7 @@ from app.core.logging import get_logger
 from app.core.settings import settings
 from app.database.session import SessionLocal, get_db
 from app.models.project import GenerationModel, ProjectImageModel, ProjectModel
+from app.models.user import UserModel
 from app.services.ai_service import AIService
 from app.services.crewai_service import (
     build_asset_crew,
@@ -153,6 +154,14 @@ async def upload_image(
         HTTPException: On validation or server errors.
     """
     try:
+        # Check tokens (Decozy_admin has infinite tokens)
+        user = db.query(UserModel).filter(UserModel.id == current_user_id).first()
+        if user.email != "Decozy_admin" and user.tokens <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Sem tokens disponíveis. Compre mais tokens para gerar projetos.",
+            )
+
         filename = UploadService.save_uploaded_file(file)
         original_url = f"/static/uploads/{filename}"
 
@@ -185,6 +194,11 @@ async def upload_image(
             filename=filename,
             user_prompt=user_prompt,
         )
+
+        # Deduct token (skip for Decozy_admin)
+        if user.email != "Decozy_admin":
+            user.tokens -= 1
+            db.commit()
 
         logger.info("Upload accepted for project %d", new_project.id)
         return {

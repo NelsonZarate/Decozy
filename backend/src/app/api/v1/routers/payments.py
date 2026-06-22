@@ -1,7 +1,7 @@
-"""Stripe payments router for checkout and webhooks."""
+"""Stripe payments router for checkout and session verification."""
 
 import stripe
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -126,7 +126,7 @@ async def create_checkout_session(
         mode="payment",
         line_items=line_items,
         metadata={"order_id": str(order.id), "project_id": str(body.project_id)},
-        success_url=f"{settings.frontend_url}/projects/{body.project_id}?payment=success",
+        success_url=f"{settings.frontend_url}/projects/{body.project_id}?payment=success&session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{settings.frontend_url}/projects/{body.project_id}?payment=cancel",
     )
 
@@ -137,36 +137,33 @@ async def create_checkout_session(
     return {"checkout_url": session.url}
 
 
-@router.post("/webhook", status_code=status.HTTP_200_OK)
-async def stripe_webhook(request: Request, db: Session = Depends(get_db)) -> dict:
-    """Handle Stripe webhook events.
+@router.get("/verify-session/{session_id}")
+async def verify_checkout_session(
+    session_id: str,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
+) -> dict:
+    """Verify a Stripe Checkout Session payment status.
 
-    Args:
-        request: Raw HTTP request with Stripe payload.
-        db: Database session.
-
-    Returns:
-        Acknowledgement dict.
-
-    Raises:
-        HTTPException: On invalid signature.
+    Called by the frontend after redirect from Stripe. Marks the order
+    as paid if the session payment_status is 'paid'.
     """
-    payload = await request.body()
-    sig_header = request.headers.get("stripe-signature")
+    order = (
+        db.query(OrderModel)
+        .filter(OrderModel.stripe_session_id == session_id, OrderModel.user_id == current_user_id)
+        .first()
+    )
+    if not order:
+        raise HTTPException(status_code=404, detail="Sessão não encontrada.")
 
-    try:
-        event = stripe.Webhook.construct_event(payload, sig_header, settings.stripe_webhook_secret)
-    except (ValueError, stripe.error.SignatureVerificationError):
-        raise HTTPException(status_code=400, detail="Assinatura inválida.")
+    if order.status == "paid":
+        return {"status": "paid", "order_id": order.id}
 
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        order_id = session.get("metadata", {}).get("order_id")
-        if order_id:
-            order = db.query(OrderModel).filter(OrderModel.id == int(order_id)).first()
-            if order:
-                order.status = "paid"
-                db.commit()
-                logger.info("Order %s marked as paid", order_id)
+    session = stripe.checkout.Session.retrieve(session_id)
 
-    return {"received": True}
+    if session.payment_status == "paid":
+        order.status = "paid"
+        db.commit()
+        logger.info("Order %d marked as paid via session verify", order.id)
+
+    return {"status": order.status, "order_id": order.id}

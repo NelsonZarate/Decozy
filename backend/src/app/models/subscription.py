@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, func
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.session import Base
@@ -32,17 +31,3 @@ class SubscriptionModel(Base):
     )
 
     user: Mapped["UserModel"] = relationship(back_populates="subscription")
-
-
-class StripeEventModel(Base):
-    __tablename__ = "stripe_events"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    stripe_event_id: Mapped[str] = mapped_column(
-        String, unique=True, nullable=False, index=True
-    )
-    event_type: Mapped[str] = mapped_column(String, nullable=False)
-    payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
-    processed_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )

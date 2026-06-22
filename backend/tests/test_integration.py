@@ -1,7 +1,7 @@
 """Comprehensive integration tests for Decozy backend.
 
 Covers: Auth flow, Project CRUD, AI Generation pipeline (mocked),
-Stripe checkout + webhook, and E2E simulation.
+Stripe checkout + session verification, and E2E simulation.
 """
 
 import json
@@ -236,7 +236,7 @@ class TestGenerationPipeline:
 
 
 class TestStripePayments:
-    """Stripe checkout and webhook tests."""
+    """Stripe checkout and session verification tests."""
 
     @patch("app.api.v1.routers.payments.stripe.checkout.Session.create")
     def test_create_checkout_session(self, mock_stripe, client: TestClient, auth_headers: dict, db_session: Session):
@@ -285,10 +285,9 @@ class TestStripePayments:
         )
         assert resp.status_code == 400
 
-    @patch("app.api.v1.routers.payments.stripe.Webhook.construct_event")
-    def test_webhook_marks_order_paid(self, mock_construct, client: TestClient, auth_headers: dict, db_session: Session):
-        """Webhook with checkout.session.completed should mark order as paid."""
-        # Create order (user_id=1 from auth_headers fixture)
+    @patch("app.api.v1.routers.payments.stripe.checkout.Session.retrieve")
+    def test_verify_session_marks_order_paid(self, mock_retrieve, client: TestClient, auth_headers: dict, db_session: Session):
+        """Verify-session should mark order as paid when Stripe confirms payment."""
         project = ProjectModel(user_id=1, title="WH")
         db_session.add(project)
         db_session.commit()
@@ -299,57 +298,55 @@ class TestStripePayments:
         db_session.commit()
         db_session.refresh(order)
 
-        # Mock Stripe event
-        mock_construct.return_value = {
-            "type": "checkout.session.completed",
-            "data": {"object": {"metadata": {"order_id": str(order.id), "project_id": str(project.id)}}},
-        }
+        mock_retrieve.return_value = MagicMock(payment_status="paid")
 
-        resp = client.post(
-            "/api/v1/payments/webhook",
-            content=b'{"fake": "payload"}',
-            headers={"stripe-signature": "fake_sig"},
+        resp = client.get(
+            "/api/v1/payments/verify-session/cs_test_456",
+            headers=auth_headers,
         )
         assert resp.status_code == 200
-        assert resp.json() == {"received": True}
+        assert resp.json()["status"] == "paid"
 
-        # Verify order status updated
         db_session.refresh(order)
         assert order.status == "paid"
 
-    @patch("app.api.v1.routers.payments.stripe.Webhook.construct_event")
-    def test_webhook_invalid_signature(self, mock_construct, client: TestClient):
-        """Webhook should reject invalid Stripe signature."""
-        from stripe import SignatureVerificationError
-        mock_construct.side_effect = SignatureVerificationError("bad sig", "header")
-
-        resp = client.post(
-            "/api/v1/payments/webhook",
-            content=b"bad",
-            headers={"stripe-signature": "invalid"},
+    def test_verify_session_not_found(self, client: TestClient, auth_headers: dict):
+        """Verify-session should 404 for unknown session."""
+        resp = client.get(
+            "/api/v1/payments/verify-session/cs_unknown",
+            headers=auth_headers,
         )
-        assert resp.status_code == 400
+        assert resp.status_code == 404
 
-    @patch("app.api.v1.routers.payments.stripe.Webhook.construct_event")
-    def test_webhook_ignores_other_events(self, mock_construct, client: TestClient, db_session: Session):
-        """Webhook should ignore non-checkout events."""
-        mock_construct.return_value = {"type": "payment_intent.succeeded", "data": {"object": {}}}
+    @patch("app.api.v1.routers.payments.stripe.checkout.Session.retrieve")
+    def test_verify_session_unpaid(self, mock_retrieve, client: TestClient, auth_headers: dict, db_session: Session):
+        """Verify-session should return pending if not yet paid."""
+        project = ProjectModel(user_id=1, title="Unpaid")
+        db_session.add(project)
+        db_session.commit()
+        db_session.refresh(project)
 
-        resp = client.post(
-            "/api/v1/payments/webhook",
-            content=b'{"type": "payment_intent.succeeded"}',
-            headers={"stripe-signature": "sig"},
+        order = OrderModel(user_id=1, project_id=project.id, status="pending", total_cents=3000, stripe_session_id="cs_test_unpaid")
+        db_session.add(order)
+        db_session.commit()
+
+        mock_retrieve.return_value = MagicMock(payment_status="unpaid")
+
+        resp = client.get(
+            "/api/v1/payments/verify-session/cs_test_unpaid",
+            headers=auth_headers,
         )
         assert resp.status_code == 200
+        assert resp.json()["status"] == "pending"
 
 
 # ─── E2E SIMULATION ──────────────────────────────────────────────────────────
 
 
 class TestE2EFlow:
-    """End-to-end simulation: register → upload → generate → checkout → webhook → paid."""
+    """End-to-end simulation: register → upload → generate → checkout → verify → paid."""
 
-    @patch("app.api.v1.routers.payments.stripe.Webhook.construct_event")
+    @patch("app.api.v1.routers.payments.stripe.checkout.Session.retrieve")
     @patch("app.api.v1.routers.payments.stripe.checkout.Session.create")
     @patch("app.api.v1.routers.upload.process_image_with_ai_background")
     @patch("app.services.upload.UploadService.save_uploaded_file")
@@ -358,7 +355,7 @@ class TestE2EFlow:
         mock_save_file,
         mock_bg_task,
         mock_stripe_checkout,
-        mock_stripe_webhook,
+        mock_stripe_retrieve,
         client: TestClient,
         db_session: Session,
     ):
@@ -430,17 +427,14 @@ class TestE2EFlow:
         assert order.status == "pending"
         assert order.total_cents == 89999 + 24999  # €899.99 + €249.99
 
-        # 10. Simulate Stripe webhook (payment completed)
-        mock_stripe_webhook.return_value = {
-            "type": "checkout.session.completed",
-            "data": {"object": {"metadata": {"order_id": str(order.id), "project_id": str(project_id)}}},
-        }
-        resp = client.post(
-            "/api/v1/payments/webhook",
-            content=b'{"id": "evt_e2e"}',
-            headers={"stripe-signature": "whsec_e2e"},
+        # 10. Verify payment via session retrieve (replaces webhook)
+        mock_stripe_retrieve.return_value = MagicMock(payment_status="paid")
+        resp = client.get(
+            "/api/v1/payments/verify-session/cs_e2e_001",
+            headers=headers,
         )
         assert resp.status_code == 200
+        assert resp.json()["status"] == "paid"
 
         # 11. Verify order is now paid
         db_session.refresh(order)
