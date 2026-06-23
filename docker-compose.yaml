@@ -37,6 +37,8 @@ services:
       GOOGLE_REDIRECT_URI: ${google_redirect_uri}
       GROQ_API_KEY: ${groq_api_key}
       GROQ_MODEL: ${groq_model}
+      STRIPE_SECRET_KEY: ${stripe_secret_key}
+      FRONTEND_URL: ${frontend_url}
     depends_on:
       database:
         condition: service_healthy

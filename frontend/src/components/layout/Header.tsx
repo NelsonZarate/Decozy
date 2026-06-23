@@ -32,7 +32,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
       <div className="flex items-center gap-3 ml-auto">
         <DesktopNav />
-        <CreditsBadge credits={5} />
+        <CreditsBadge />
       </div>
     </header>
   );
