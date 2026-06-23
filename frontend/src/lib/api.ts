@@ -298,3 +298,55 @@ export function createCheckoutSession(
     json: { project_id: projectId, item_ids: itemIds },
   });
 }
+
+// ---------------------------------------------------------------------------
+// Tokens / credits
+// ---------------------------------------------------------------------------
+
+export interface TokenBalance {
+  tokens: number;
+  email: string;
+}
+
+export interface TokenPackage {
+  id: string;
+  tokens: number;
+  price_eur: number;
+}
+
+export interface VerifyTokenSessionResponse {
+  status: string; // "paid" | "unpaid"
+  tokens_credited: number;
+  balance?: number;
+}
+
+/** Current authenticated user's token (credit) balance. */
+export function getTokenBalance(): Promise<TokenBalance> {
+  return request<TokenBalance>("/tokens/balance");
+}
+
+/** Token packages offered by the backend (source of truth for pricing). */
+export function listTokenPackages(): Promise<TokenPackage[]> {
+  return request<TokenPackage[]>("/tokens/packages", { auth: false });
+}
+
+/**
+ * Start a token purchase. Returns the Stripe Checkout URL to redirect to.
+ * Requires authentication (the backend ties the purchase to the user).
+ */
+export function purchaseTokens(packageId: string): Promise<{ checkout_url: string }> {
+  return request<{ checkout_url: string }>("/tokens/purchase", {
+    method: "POST",
+    json: { package_id: packageId },
+  });
+}
+
+/**
+ * Verify a completed Checkout Session and credit the tokens to the user.
+ * Idempotent on the backend (a session is only credited once).
+ */
+export function verifyTokenSession(sessionId: string): Promise<VerifyTokenSessionResponse> {
+  return request<VerifyTokenSessionResponse>(
+    `/tokens/verify-session/${encodeURIComponent(sessionId)}`,
+  );
+}

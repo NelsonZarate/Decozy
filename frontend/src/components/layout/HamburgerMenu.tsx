@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useCredits } from "@/components/credits/CreditsContext";
 import Link from "next/link";
 
 interface HamburgerMenuProps {
@@ -12,9 +13,15 @@ interface HamburgerMenuProps {
 export function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
   const router = useRouter();
   const { user, isAuthenticated, signOut } = useAuth();
+  const { openCredits } = useCredits();
 
   function handleSignIn() {
     onClose();
+  }
+
+  function handleAddCredits() {
+    onClose();
+    openCredits();
   }
 
   function handleSignOut() {
@@ -54,7 +61,6 @@ export function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
                 <h3 className="font-semibold text-on-surface text-base truncate">
                   {user?.name ?? "Member"}
                 </h3>
-                <p className="text-xs text-outline">Pro Member</p>
               </div>
             </div>
           ) : (
@@ -78,7 +84,7 @@ export function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
           {/* Menu Items */}
           <nav className="flex flex-col gap-1">
             <button
-              onClick={onClose}
+              onClick={handleAddCredits}
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-on-secondary bg-secondary hover:opacity-90 active:scale-[0.98] transition-all w-full text-left shadow-sm"
             >
               <span className="text-on-secondary">
