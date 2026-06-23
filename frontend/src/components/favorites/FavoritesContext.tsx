@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { deleteSavedItem, listSavedItems, saveItem } from "@/lib/api";
+import { ApiError, deleteSavedItem, listSavedItems, saveItem } from "@/lib/api";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 export interface FavoriteItem {
@@ -72,7 +72,7 @@ function cacheItem(item: FavoriteItem): void {
 const FavoritesContext = createContext<FavoritesContextValue | undefined>(undefined);
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isReady } = useAuth();
+  const { isAuthenticated, isReady, signOut } = useAuth();
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
 
   const staticMap = useMemo(() => {
@@ -81,31 +81,46 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     return map;
   }, []);
 
+  // Reset favorites on sign-out, during render (avoids effect-driven setState).
+  const [prevAuth, setPrevAuth] = useState(isAuthenticated);
+  if (isAuthenticated !== prevAuth) {
+    setPrevAuth(isAuthenticated);
+    if (!isAuthenticated) setFavorites([]);
+  }
+
   // Rebuild the favorites list from the backend (source of truth for which
   // items are saved) + the local cache / static catalog (for their details).
-  const loadFavorites = useCallback(async () => {
-    const saved = await listSavedItems();
-    const cache = readCache();
-    setFavorites(
-      saved
-        .map((s) => {
-          const id = String(s.item_id);
-          return cache[id] ?? staticMap.get(id);
-        })
-        .filter((item): item is FavoriteItem => Boolean(item)),
-    );
-  }, [staticMap]);
-
+  // Only runs while authenticated; setState happens inside the promise.
   useEffect(() => {
-    if (!isReady) return;
-    if (isAuthenticated) {
-      loadFavorites().catch((err) => {
+    if (!isReady || !isAuthenticated) return;
+    let active = true;
+    listSavedItems()
+      .then((saved) => {
+        if (!active) return;
+        const cache = readCache();
+        setFavorites(
+          saved
+            .map((s) => {
+              const id = String(s.item_id);
+              return cache[id] ?? staticMap.get(id);
+            })
+            .filter((item): item is FavoriteItem => Boolean(item)),
+        );
+      })
+      .catch((err) => {
+        // An expired/invalid token shows up as 401: treat the user as logged
+        // out instead of surfacing a (noisy) error, and clear the stale token
+        // so the app stops retrying.
+        if (err instanceof ApiError && err.status === 401) {
+          signOut();
+          return;
+        }
         console.error("[favorites] loadFavorites failed:", err);
       });
-    } else {
-      setFavorites([]);
-    }
-  }, [isReady, isAuthenticated, loadFavorites]);
+    return () => {
+      active = false;
+    };
+  }, [isReady, isAuthenticated, staticMap, signOut]);
 
   const toggleFavorite = useCallback(
     (item: FavoriteItem) => {

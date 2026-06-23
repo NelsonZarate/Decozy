@@ -1,19 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
 import { useFavorites } from "@/components/favorites/FavoritesContext";
 
-const categories = ["All", "Seating", "Lighting", "Tables", "Bedroom", "Decor"];
-
 export function MyItemsPage() {
-  const { addItem } = useCart();
+  const { addItem, count, openCheckout } = useCart();
   const { favorites, toggleFavorite } = useFavorites();
-  const [activeCategory, setActiveCategory] = useState("All");
 
-  const filtered = favorites.filter(
-    (item) => activeCategory === "All" || item.category === activeCategory
-  );
+  function handleAddToCart(item: (typeof favorites)[number]) {
+    // If the cart already holds an item, adding another opens the checkout menu.
+    const alreadyHasItems = count > 0;
+    addItem(item);
+    if (alreadyHasItems) openCheckout();
+  }
 
   return (
     <main className="flex-1 px-4 pb-24 lg:max-w-6xl lg:mx-auto lg:w-full lg:px-8 lg:pt-4 lg:pb-12">
@@ -24,24 +23,7 @@ export function MyItemsPage() {
         </p>
       </section>
 
-      {/* Category filters */}
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-              activeCategory === cat
-                ? "bg-on-surface text-surface border-on-surface"
-                : "bg-transparent text-on-surface-variant border-outline-variant"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {filtered.length === 0 ? (
+      {favorites.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center py-16 lg:py-28">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-outline mb-3">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -54,7 +36,7 @@ export function MyItemsPage() {
       ) : (
         /* Items grid */
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
-          {filtered.map((item) => (
+          {favorites.map((item) => (
             <div
               key={item.id}
               className="flex flex-col bg-surface-container-lowest rounded-2xl border border-outline-variant/20 p-3"
@@ -94,7 +76,7 @@ export function MyItemsPage() {
                 <div className="flex items-center justify-between mt-2 lg:mt-3">
                   <span className="text-sm font-semibold text-on-surface lg:text-base">{item.price}</span>
                   <button
-                    onClick={() => addItem(item)}
+                    onClick={() => handleAddToCart(item)}
                     aria-label={`Add ${item.name} to cart`}
                     className="flex items-center gap-1 text-secondary hover:opacity-70 active:scale-95 transition-all"
                   >

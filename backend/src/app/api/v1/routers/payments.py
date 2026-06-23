@@ -1,5 +1,7 @@
 """Stripe payments router for checkout and session verification."""
 
+from collections import Counter
+
 import stripe
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -167,3 +169,122 @@ async def verify_checkout_session(
         logger.info("Order %d marked as paid via session verify", order.id)
 
     return {"status": order.status, "order_id": order.id}
+
+
+# ---------------------------------------------------------------------------
+# Cart checkout (favorites cart with name + shipping address)
+# ---------------------------------------------------------------------------
+
+
+class CartCheckoutRequest(BaseModel):
+    """Request body for checking out the favorites cart.
+
+    Attributes:
+        item_ids: Item IDs in the cart (repeat an id to buy more than one).
+        customer_name: Name of the person placing the order.
+        shipping_address: Free-form shipping address.
+    """
+
+    item_ids: list[int]
+    customer_name: str
+    shipping_address: str
+
+
+@router.post("/create-cart-checkout-session")
+async def create_cart_checkout_session(
+    body: CartCheckoutRequest,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
+) -> dict:
+    """Create a Stripe Checkout Session for an arbitrary cart of items.
+
+    Prices come from the database (never trust client-side amounts). The name
+    and shipping address are attached to the resulting PaymentIntent.
+    """
+    if not settings.stripe_secret_key:
+        raise HTTPException(
+            status_code=500,
+            detail="Stripe não está configurado (STRIPE_SECRET_KEY em falta).",
+        )
+
+    name = body.customer_name.strip()
+    address = body.shipping_address.strip()
+    if not name or not address:
+        raise HTTPException(status_code=400, detail="Nome e morada são obrigatórios.")
+
+    # Count how many of each item the cart contains.
+    counts = Counter(body.item_ids)
+    if not counts:
+        raise HTTPException(status_code=400, detail="O carrinho está vazio.")
+
+    items = db.query(ItemModel).filter(ItemModel.id.in_(counts.keys())).all()
+    if not items:
+        raise HTTPException(status_code=400, detail="Nenhum item válido encontrado.")
+
+    line_items: list[dict] = []
+    for item in items:
+        price_cents = _parse_price_to_cents(item.price)
+        if price_cents <= 0:
+            continue
+        line_items.append({
+            "price_data": {
+                "currency": "eur",
+                "unit_amount": price_cents,
+                "product_data": {"name": item.name},
+            },
+            "quantity": counts[item.id],
+        })
+
+    if not line_items:
+        raise HTTPException(status_code=400, detail="Nenhum item com preço válido.")
+
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            mode="payment",
+            line_items=line_items,
+            payment_intent_data={
+                "shipping": {
+                    "name": name,
+                    "address": {"line1": address},
+                },
+            },
+            metadata={
+                "type": "cart_purchase",
+                "user_id": str(current_user_id),
+                "customer_name": name,
+            },
+            success_url=f"{settings.frontend_url}/checkout?payment=success&session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{settings.frontend_url}/checkout?payment=cancel",
+        )
+    except stripe.error.StripeError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Erro ao criar a sessão de pagamento: {exc.user_message or str(exc)}",
+        )
+
+    return {"checkout_url": session.url}
+
+
+@router.get("/verify-cart-session/{session_id}")
+async def verify_cart_session(
+    session_id: str,
+    current_user_id: int = Depends(get_current_user_id),
+) -> dict:
+    """Verify a cart Checkout Session payment status after the Stripe redirect."""
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+    except stripe.error.StripeError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Erro ao obter a sessão de pagamento: {exc.user_message or str(exc)}",
+        )
+
+    metadata = session.metadata or {}
+    if getattr(metadata, "type", None) != "cart_purchase":
+        raise HTTPException(status_code=400, detail="Sessão inválida.")
+
+    if int(getattr(metadata, "user_id", 0) or 0) != current_user_id:
+        raise HTTPException(status_code=403, detail="Sessão não pertence a este utilizador.")
+
+    return {"status": session.payment_status}

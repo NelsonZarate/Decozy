@@ -50,12 +50,11 @@ export function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
           {/* Account */}
           {isAuthenticated ? (
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-container-high">
-                <img
-                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&q=80"
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full overflow-hidden bg-surface-container-high text-on-surface-variant">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
+                </svg>
               </div>
               <div className="min-w-0">
                 <h3 className="font-semibold text-on-surface text-base truncate">
