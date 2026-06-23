@@ -6,7 +6,6 @@ import { useProjects } from "@/components/projects/ProjectsContext";
 import { useFavorites, type FavoriteItem } from "@/components/favorites/FavoritesContext";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { changeProjectTitle } from "@/lib/api";
-import galleryData from "@/data/gallery-mock.json";
 
 /** Max length allowed for a project title. */
 const MAX_TITLE_LENGTH = 24;
@@ -32,24 +31,9 @@ function truncateTitle(name: string): string {
   return result || name.slice(0, MAX_TITLE_LENGTH);
 }
 
-const filters = ["All Projects", "Living Room", "Bedroom", "Scandinavian", "Industrial"];
-
-/** Fallback furniture for projects that don't carry their own list (e.g. freshly generated ones). */
-const DEFAULT_FURNITURE: FavoriteItem[] = [
-  {
-    id: "accent-chair",
-    name: "Accent Lounge Chair",
-    category: "Seating",
-    price: "$390",
-    image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&h=600&fit=crop",
-  },
-];
-
-/** Furniture detected in a design. Projects from the mock JSON carry their own list. */
-function getFurniture(project: { id: string; furniture?: FavoriteItem[] }): FavoriteItem[] {
-  if (project.furniture && project.furniture.length > 0) return project.furniture;
-  // Keep ids unique per project so favoriting one doesn't highlight others.
-  return DEFAULT_FURNITURE.map((item) => ({ ...item, id: `${project.id}-${item.id}` }));
+/** Furniture detected in a design, as returned by the backend (may be empty). */
+function getFurniture(project: { furniture?: FavoriteItem[] }): FavoriteItem[] {
+  return project.furniture ?? [];
 }
 
 /** Format an ISO date string deterministically (locale/timezone independent)
@@ -65,7 +49,6 @@ function formatDate(value: string): string {
 }
 
 export function GalleryPage() {
-  const [activeFilter, setActiveFilter] = useState("All Projects");
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const { projects: generatedProjects, loadProjects, updateProjectTitle } = useProjects();
@@ -113,8 +96,8 @@ export function GalleryPage() {
     }
   }, [isReady, isAuthenticated, loadProjects]);
 
-  // Generated projects first, then the static mock gallery.
-  const allProjects = [...generatedProjects, ...galleryData.projects];
+  // Only the user's real backend projects (no mock data).
+  const allProjects = generatedProjects;
 
   // Highlight + scroll to a specific project when arriving via ?project=<id>.
   const [highlightId, setHighlightId] = useState<string | null>(() => {
@@ -132,9 +115,6 @@ export function GalleryPage() {
   }, [highlightId, generatedProjects.length]);
 
   const projects = allProjects.filter((p) => {
-    if (activeFilter !== "All Projects") {
-      if (p.room !== activeFilter && p.style !== activeFilter) return false;
-    }
     if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -149,9 +129,9 @@ export function GalleryPage() {
         </p>
       </section>
 
-      {/* Search + Filter (row on desktop) */}
-      <div className="lg:flex lg:items-stretch lg:gap-3 lg:max-w-2xl">
-        <div className="relative mb-3 lg:mb-0 lg:flex-1">
+      {/* Search */}
+      <div className="lg:max-w-2xl">
+        <div className="relative mb-4 lg:mb-0">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-outline" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -164,32 +144,9 @@ export function GalleryPage() {
             className="w-full pl-9 pr-4 py-2.5 border border-outline-variant rounded-lg text-sm bg-surface-container-lowest placeholder-outline focus:outline-none focus:ring-1 focus:ring-primary-container"
           />
         </div>
-
-        {/* Filter button */}
-        <button className="w-full flex items-center justify-center gap-2 py-2.5 border border-outline-variant rounded-lg text-sm font-medium text-on-surface mb-4 lg:mb-0 lg:w-auto lg:px-5 lg:shrink-0">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="11" y1="18" x2="13" y2="18" />
-          </svg>
-          Filter
-        </button>
       </div>
 
-      {/* Filter chips */}
-      <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide lg:mt-4">
-        {filters.map((f) => (
-          <button
-            key={f}
-            onClick={() => setActiveFilter(f)}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              activeFilter === f
-                ? "bg-primary-container text-on-primary"
-                : "bg-surface-container-high text-on-surface-variant"
-            }`}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
+      <div className="mb-4 lg:mt-4" />
 
       {/* Project cards */}
       <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-6">
@@ -294,6 +251,11 @@ export function GalleryPage() {
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">
                     Furniture in this design
                   </p>
+                  {getFurniture(project).length === 0 && (
+                    <p className="text-xs text-on-surface-variant">
+                      No furniture detected for this design yet.
+                    </p>
+                  )}
                   {getFurniture(project).map((item) => {
                     const fav = isFavorite(item.id);
                     return (

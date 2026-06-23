@@ -8,6 +8,7 @@ import { ProjectsProvider } from "@/components/projects/ProjectsContext";
 import { CartProvider } from "@/components/cart/CartContext";
 import { FavoritesProvider } from "@/components/favorites/FavoritesContext";
 import { FloatingCart } from "@/components/cart/FloatingCart";
+import { CartCheckoutModal } from "@/components/cart/CartCheckoutModal";
 import { CreditsProvider } from "@/components/credits/CreditsContext";
 import { CreditsModal } from "@/components/credits/CreditsModal";
 
@@ -26,6 +27,7 @@ export default function TabsLayout({ children }: { children: React.ReactNode }) 
               <FloatingCart />
               <BottomNav />
               <CreditsModal />
+              <CartCheckoutModal />
             </div>
           </CreditsProvider>
         </FavoritesProvider>

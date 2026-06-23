@@ -299,6 +299,33 @@ export function createCheckoutSession(
   });
 }
 
+/**
+ * Create a Stripe Checkout Session for the favorites cart, attaching the
+ * buyer's name and shipping address. Returns the URL to redirect to.
+ * Requires authentication.
+ */
+export function createCartCheckoutSession(
+  itemIds: number[],
+  customerName: string,
+  shippingAddress: string,
+): Promise<{ checkout_url: string }> {
+  return request<{ checkout_url: string }>("/payments/create-cart-checkout-session", {
+    method: "POST",
+    json: {
+      item_ids: itemIds,
+      customer_name: customerName,
+      shipping_address: shippingAddress,
+    },
+  });
+}
+
+/** Verify a cart Checkout Session payment status after the Stripe redirect. */
+export function verifyCartSession(sessionId: string): Promise<{ status: string }> {
+  return request<{ status: string }>(
+    `/payments/verify-cart-session/${encodeURIComponent(sessionId)}`,
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Tokens / credits
 // ---------------------------------------------------------------------------

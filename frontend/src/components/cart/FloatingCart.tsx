@@ -3,7 +3,7 @@
 import { useCart } from "@/components/cart/CartContext";
 
 export function FloatingCart() {
-  const { count } = useCart();
+  const { count, openCheckout } = useCart();
 
   // Appears once there is at least one item in the cart.
   if (count === 0) return null;
@@ -13,7 +13,8 @@ export function FloatingCart() {
       <div className="flex justify-end">
         <button
           type="button"
-          aria-label={`Cart with ${count} item${count === 1 ? "" : "s"}`}
+          onClick={openCheckout}
+          aria-label={`Checkout — cart with ${count} item${count === 1 ? "" : "s"}`}
           className="pointer-events-auto relative flex h-14 w-14 items-center justify-center rounded-full bg-primary-container text-on-primary shadow-lg hover:bg-primary active:scale-95 transition-all"
         >
           <svg
