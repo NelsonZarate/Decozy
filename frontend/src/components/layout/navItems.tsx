@@ -14,7 +14,7 @@ export interface NavTab {
 export const navTabs: NavTab[] = [
   {
     id: "design",
-    href: "/",
+    href: "/design",
     label: "Design",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -53,5 +53,5 @@ export const navTabs: NavTab[] = [
 ];
 
 export function isTabActive(href: string, pathname: string): boolean {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  return pathname.startsWith(href);
 }
