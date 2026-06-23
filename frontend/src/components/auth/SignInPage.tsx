@@ -29,7 +29,7 @@ export function SignInPage() {
     try {
       const res = await loginLocal(email, password);
       signIn({ name: email.split("@")[0], email }, res.access_token);
-      router.push("/");
+      router.push("/design");
     } catch (err) {
       setError(
         err instanceof ApiError && err.status === 400
@@ -43,7 +43,7 @@ export function SignInPage() {
 
   function handleGoogleSignIn() {
     signIn({ name: "Google User", email: "user@gmail.com" });
-    router.push("/");
+    router.push("/design");
   }
 
   const inputClass = "w-full px-4 py-3 border-2 border-outline-variant/40 rounded-xl text-sm bg-surface-container-lowest placeholder-outline focus:outline-none focus:border-primary-container transition-colors";
