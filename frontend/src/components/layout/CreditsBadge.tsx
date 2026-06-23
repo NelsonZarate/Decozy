@@ -6,12 +6,6 @@ interface CreditsBadgeProps {
   className?: string;
 }
 
-/**
- * Small pill shown in the navbar with the user's available credits.
- * Styled within the Decozy sage palette for a subtle, premium look.
- * Tapping it opens the "Add Credits" purchase menu. The count reflects the
- * real token balance from the backend (falls back to 0 until loaded).
- */
 export function CreditsBadge({ className = "" }: CreditsBadgeProps) {
   const { openCredits, balance } = useCredits();
   const display = balance ?? 0;

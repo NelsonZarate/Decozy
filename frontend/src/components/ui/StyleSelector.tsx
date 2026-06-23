@@ -96,7 +96,6 @@ export function StyleSelector() {
 
   return (
     <div className="relative">
-      {/* Left arrow (desktop only) */}
       <button
         type="button"
         aria-label="Scroll styles left"
@@ -110,7 +109,6 @@ export function StyleSelector() {
         </svg>
       </button>
 
-      {/* Right arrow (desktop only) */}
       <button
         type="button"
         aria-label="Scroll styles right"

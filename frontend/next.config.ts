@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Hide the on-screen Next.js logo / route indicator shown during development.
+  devIndicators: false,
   turbopack: {
     root: __dirname,
   },

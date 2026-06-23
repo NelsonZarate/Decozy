@@ -7,13 +7,10 @@ import { getTokenBalance } from "@/lib/api";
 export { CREDIT_PACKAGES, type CreditPackage } from "@/lib/credits";
 
 interface CreditsContextValue {
-  /** Whether the purchase menu is currently open. */
   isOpen: boolean;
   openCredits: () => void;
   closeCredits: () => void;
-  /** Current token balance, or null until loaded / when signed out. */
   balance: number | null;
-  /** Re-fetch the balance from the backend (e.g. after a purchase). */
   refreshBalance: () => Promise<void>;
 }
 
@@ -43,8 +40,7 @@ export function CreditsProvider({ children }: { children: React.ReactNode }) {
     if (!isAuthenticated) setBalance(null);
   }
 
-  // Load the balance once auth state is known. setState happens inside the
-  // promise callback (not synchronously in the effect body).
+  // Load the balance once auth state is known.
   useEffect(() => {
     if (!(isReady && isAuthenticated)) return;
     let active = true;

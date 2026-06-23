@@ -18,10 +18,6 @@ interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isReady: boolean;
-  /**
-   * Persist the signed-in user. When a JWT `token` is provided it is stored so
-   * subsequent API calls are authenticated.
-   */
   signIn: (user: AuthUser, token?: string) => void;
   signOut: () => void;
 }
@@ -34,8 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isReady, setIsReady] = useState(false);
 
-  // Hydrate from localStorage on mount. A user is only considered signed in
-  // when both the stored profile and the JWT token are present.
+  // Hydrate from localStorage; signed in only when both profile and token exist.
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);

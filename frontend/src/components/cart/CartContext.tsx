@@ -10,7 +10,6 @@ export interface CartItem {
   image: string;
 }
 
-/** Parse a display price like "$1,249" or "320" into a number (0 when invalid). */
 export function parsePrice(price: string): number {
   if (!price) return 0;
   // Keep digits, dot and comma, then normalise to a JS-parseable number.
@@ -23,23 +22,18 @@ export function parsePrice(price: string): number {
   return Number.isFinite(value) ? value : 0;
 }
 
-/** Format a numeric amount back into the app's "$X,XXX" display style. */
 export function formatPrice(amount: number): string {
   return `$${amount.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 }
 
 interface CartContextValue {
   items: CartItem[];
-  /** Total number of items in the cart. */
   count: number;
-  /** Sum of all item prices in the cart. */
   total: number;
-  /** Total formatted for display, e.g. "$1,754". */
   totalLabel: string;
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
   clear: () => void;
-  /** Whether the checkout mini-menu is open. */
   isCheckoutOpen: boolean;
   openCheckout: () => void;
   closeCheckout: () => void;

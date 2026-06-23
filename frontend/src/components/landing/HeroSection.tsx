@@ -20,7 +20,6 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-screen overflow-hidden">
-      {/* Mobile */}
       <div className="absolute inset-0 lg:hidden">
         <video
           ref={mobileVideoRef}
@@ -37,11 +36,11 @@ export function HeroSection() {
 
         <div className="absolute bottom-12 inset-x-0 text-center px-6">
           <h1 className="font-serif text-3xl text-on-primary leading-tight drop-shadow-lg">
-            Não sabe como irá ficar a sua decoração?
+            Not sure how your décor will look?
           </h1>
 
           <p className="mt-3 text-base text-on-primary/80 drop-shadow">
-            Experimente <span className="font-semibold">Decozy</span>
+            Try <span className="font-semibold">Decozy</span>
           </p>
 
           <div className="mt-6">
@@ -49,21 +48,20 @@ export function HeroSection() {
               href="/design"
               className="inline-block px-7 py-3 rounded-full bg-primary-container text-on-primary-container font-semibold shadow-xl hover:scale-105 transition-transform"
             >
-              Cria os teus designs
+              Create your own designs
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Desktop */}
       <div className="hidden lg:flex items-center justify-between min-h-screen w-full max-w-7xl mx-auto px-16 gap-16">
         <div className="flex-1">
           <h1 className="font-serif text-5xl xl:text-6xl text-primary-container leading-tight">
-            Não sabe como irá ficar a sua decoração?
+            Not sure how your décor will look?
           </h1>
 
           <p className="mt-4 text-xl text-on-surface-variant">
-            Experimente{" "}
+            Try{" "}
             <span className="font-semibold text-primary-container">
               Decozy
             </span>

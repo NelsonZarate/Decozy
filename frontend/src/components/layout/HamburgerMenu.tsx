@@ -32,7 +32,6 @@ export function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
 
   return (
     <>
-      {/* Overlay */}
       <div
         className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -40,14 +39,12 @@ export function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
         onClick={onClose}
       />
 
-      {/* Drawer */}
       <div
         className={`fixed top-0 left-0 h-full w-[75%] max-w-[300px] bg-white z-50 transform transition-transform duration-300 ease-in-out rounded-r-2xl ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full p-6 pt-10">
-          {/* Account */}
           {isAuthenticated ? (
             <div className="flex items-center gap-3 mb-8">
               <div className="flex h-12 w-12 items-center justify-center rounded-full overflow-hidden bg-surface-container-high text-on-surface-variant">
@@ -80,7 +77,6 @@ export function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
             </div>
           )}
 
-          {/* Menu Items */}
           <nav className="flex flex-col gap-1">
             <button
               onClick={handleAddCredits}
@@ -97,7 +93,6 @@ export function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
             </button>
           </nav>
 
-          {/* Sign Out pinned to the bottom */}
           {isAuthenticated && (
             <button
               onClick={handleSignOut}

@@ -7,19 +7,12 @@ import { useFavorites, type FavoriteItem } from "@/components/favorites/Favorite
 import { useAuth } from "@/components/auth/AuthProvider";
 import { changeProjectTitle } from "@/lib/api";
 
-/** Max length allowed for a project title. */
 const MAX_TITLE_LENGTH = 24;
 
-/** Only real backend projects (id like "p12") can be renamed via the API. */
 function isEditableProject(id: string): boolean {
   return /^p\d+$/.test(id);
 }
 
-/**
- * Trim a title to at most MAX_TITLE_LENGTH characters, preferring whole words:
- * keep adding words while the running length stays within the limit; if a
- * single first word already exceeds it, hard-slice to the limit.
- */
 function truncateTitle(name: string): string {
   if (name.length <= MAX_TITLE_LENGTH) return name;
   let result = "";
@@ -31,13 +24,10 @@ function truncateTitle(name: string): string {
   return result || name.slice(0, MAX_TITLE_LENGTH);
 }
 
-/** Furniture detected in a design, as returned by the backend (may be empty). */
 function getFurniture(project: { furniture?: FavoriteItem[] }): FavoriteItem[] {
   return project.furniture ?? [];
 }
 
-/** Format an ISO date string deterministically (locale/timezone independent)
- *  so server and client render the same text and avoid hydration mismatches. */
 function formatDate(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
@@ -55,7 +45,6 @@ export function GalleryPage() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { isAuthenticated, isReady } = useAuth();
 
-  // Inline title editing state.
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState("");
   const [savingTitle, setSavingTitle] = useState(false);
@@ -96,7 +85,6 @@ export function GalleryPage() {
     }
   }, [isReady, isAuthenticated, loadProjects]);
 
-  // Only the user's real backend projects (no mock data).
   const allProjects = generatedProjects;
 
   // Highlight + scroll to a specific project when arriving via ?project=<id>.
@@ -121,7 +109,6 @@ export function GalleryPage() {
 
   return (
     <main className="flex-1 px-4 pb-24 lg:max-w-6xl lg:mx-auto lg:w-full lg:px-8 lg:pt-4 lg:pb-12">
-      {/* Title */}
       <section className="mb-4 mt-2 lg:mt-2 lg:mb-6">
         <h2 className="font-serif text-2xl font-medium text-on-surface lg:text-3xl">My Gallery</h2>
         <p className="text-xs text-on-surface-variant mt-1 lg:text-sm lg:mt-1.5">
@@ -129,7 +116,6 @@ export function GalleryPage() {
         </p>
       </section>
 
-      {/* Search */}
       <div className="lg:max-w-2xl">
         <div className="relative mb-4 lg:mb-0">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-outline" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -148,7 +134,6 @@ export function GalleryPage() {
 
       <div className="mb-4 lg:mt-4" />
 
-      {/* Project cards */}
       <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-6">
         {projects.map((project) => (
           <div

@@ -16,32 +16,23 @@ export interface GalleryProject {
   room: string;
   style: string;
   tags: string[];
-  /** Image URL (remote, object URL or data URL). */
   beforeImage: string;
   afterImage: string;
-  /** "before_after" | "final_render" | ... */
   status: string;
   createdAt: string;
-  /** Furniture detected by the backend for this project (optional). */
   furniture?: FavoriteItem[];
 }
 
 interface ProjectsContextValue {
-  /** User-generated projects, newest first. */
   projects: GalleryProject[];
-  /** Add (or replace by id) a generated project. */
   addProject: (project: GalleryProject) => void;
-  /** Update a project's title locally (after a successful backend rename). */
   updateProjectTitle: (id: string, title: string) => void;
-  /** Fetch the authenticated user's projects from the backend. */
   loadProjects: () => Promise<void>;
-  /** Whether a backend load is currently in flight. */
   loading: boolean;
 }
 
 const ProjectsContext = createContext<ProjectsContextValue | undefined>(undefined);
 
-/** Map a backend project item into the shape the favorites/gallery UI expects. */
 function toFavoriteItem(item: ProjectItem): FavoriteItem {
   return {
     id: String(item.id),
@@ -72,8 +63,7 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
       const summaries = await listProjects();
       const detailed = await Promise.all(
         summaries
-          // The catalog project only exists to satisfy the items FK; it has no
-          // images and should not appear as a gallery project.
+          // The catalog project only satisfies the items FK; skip it in the gallery.
           .filter((summary) => summary.title !== "__catalog_demo__")
           .map(async (summary) => {
             const details = await getProject(summary.id);

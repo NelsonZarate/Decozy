@@ -166,7 +166,6 @@ export function UploadArea() {
         )}
       </div>
 
-      {/* Hidden gallery input */}
       <input
         ref={galleryInputRef}
         type="file"
@@ -175,7 +174,6 @@ export function UploadArea() {
         className="hidden"
       />
 
-      {/* Source chooser action sheet */}
       {chooserOpen && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 lg:items-center"
@@ -223,7 +221,6 @@ export function UploadArea() {
         </div>
       )}
 
-      {/* Live camera modal */}
       {cameraOpen && (
         <div className="fixed inset-0 z-50 flex flex-col bg-black">
           {cameraError ? (

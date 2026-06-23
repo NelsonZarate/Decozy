@@ -42,10 +42,8 @@ export function BeforeAfterSlider({ beforeImage, afterImage }: BeforeAfterSlider
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     >
-      {/* After image (full background) */}
       <img src={afterImage} alt="After" className="absolute inset-0 w-full h-full object-cover" />
 
-      {/* Before image (clipped via clip-path so it keeps full container size) */}
       <img
         src={beforeImage}
         alt="Before"
@@ -53,7 +51,6 @@ export function BeforeAfterSlider({ beforeImage, afterImage }: BeforeAfterSlider
         style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
       />
 
-      {/* Slider line */}
       <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg" style={{ left: `${position}%` }}>
         <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2">
@@ -62,7 +59,6 @@ export function BeforeAfterSlider({ beforeImage, afterImage }: BeforeAfterSlider
         </div>
       </div>
 
-      {/* Labels */}
       <span className="absolute top-3 left-3 text-[10px] font-semibold bg-black/50 text-white px-2 py-0.5 rounded">
         Before
       </span>

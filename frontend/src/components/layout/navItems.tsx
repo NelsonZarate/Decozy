@@ -7,10 +7,6 @@ export interface NavTab {
   icon: ReactNode;
 }
 
-/**
- * Single source of truth for the primary navigation tabs.
- * Consumed by the mobile BottomNav and the desktop DesktopNav so both stay in sync.
- */
 export const navTabs: NavTab[] = [
   {
     id: "design",

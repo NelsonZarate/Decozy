@@ -6,13 +6,6 @@ import { useCart } from "@/components/cart/CartContext";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { ApiError, createCartCheckoutSession } from "@/lib/api";
 
-/**
- * Checkout mini-menu for the favorites cart.
- *
- * Mobile-first bottom sheet that becomes a centered dialog on desktop (lg+).
- * Shows the total, collects the buyer's name + shipping address, then creates
- * a Stripe Checkout session via the backend and redirects to it.
- */
 export function CartCheckoutModal() {
   const { items, total, totalLabel, isCheckoutOpen, closeCheckout } = useCart();
   const { isAuthenticated } = useAuth();
@@ -89,7 +82,6 @@ export function CartCheckoutModal() {
 
   return (
     <>
-      {/* Overlay */}
       <div
         aria-hidden={!isCheckoutOpen}
         onClick={closeCheckout}
@@ -98,7 +90,6 @@ export function CartCheckoutModal() {
         }`}
       />
 
-      {/* Sheet / Dialog */}
       <div
         role="dialog"
         aria-modal="true"
@@ -115,10 +106,8 @@ export function CartCheckoutModal() {
           }`}
       >
         <div className="flex flex-col px-5 pb-8 pt-4 lg:px-8 lg:pb-8 lg:pt-6">
-          {/* Grab handle (mobile only) */}
           <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-outline-variant lg:hidden" />
 
-          {/* Header */}
           <div className="mb-4 flex items-start justify-between gap-4">
             <div>
               <h2 className="font-serif text-2xl font-medium text-on-surface">Checkout</h2>
@@ -139,13 +128,11 @@ export function CartCheckoutModal() {
             </button>
           </div>
 
-          {/* Total */}
           <div className="mb-5 flex items-center justify-between rounded-2xl bg-secondary-container/50 px-4 py-3">
             <span className="text-sm font-medium text-on-secondary-container">Total</span>
             <span className="text-xl font-bold tabular-nums text-on-surface">{totalLabel}</span>
           </div>
 
-          {/* Form */}
           <div className="flex flex-col gap-3">
             <label className="flex flex-col gap-1">
               <span className="text-xs font-medium text-on-surface-variant">Full name</span>
@@ -181,7 +168,6 @@ export function CartCheckoutModal() {
             </p>
           )}
 
-          {/* Pay */}
           <button
             type="button"
             onClick={handlePay}

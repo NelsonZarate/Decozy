@@ -22,15 +22,9 @@ export interface FavoriteItem {
 interface FavoritesContextValue {
   favorites: FavoriteItem[];
   isFavorite: (id: string) => boolean;
-  /** Adds the item when missing, removes it when already favorited. */
   toggleFavorite: (item: FavoriteItem) => void;
 }
 
-/**
- * Static fallback details for the mock furniture seeded into the `items` table
- * with these fixed ids. Used when the local cache has no entry (e.g. first time
- * on a new device).
- */
 const CATALOG: FavoriteItem[] = [
   { id: "9001", name: "Scandi Oak Frame Sofa", category: "Seating", price: "$1,249", image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=600&fit=crop" },
   { id: "9002", name: "Arc Minimalist Floor Lamp", category: "Lighting", price: "$320", image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=600&h=600&fit=crop" },
@@ -41,12 +35,7 @@ const CATALOG: FavoriteItem[] = [
   { id: "9007", name: "Whitewash Coffee Table", category: "Tables", price: "$520", image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=600&h=600&fit=crop" },
 ];
 
-// ---------------------------------------------------------------------------
-// Local details cache (keyed by item id). The DB is the source of truth for
-// WHICH items are favorited; this only remembers their display details so the
-// Favorites tab can be rebuilt after a refresh without loading projects.
-// ---------------------------------------------------------------------------
-
+// Local cache of favorited item details; the DB is the source of truth for which are saved.
 const CACHE_KEY = "decozy.fav.cache";
 
 function readCache(): Record<string, FavoriteItem> {
@@ -88,9 +77,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     if (!isAuthenticated) setFavorites([]);
   }
 
-  // Rebuild the favorites list from the backend (source of truth for which
-  // items are saved) + the local cache / static catalog (for their details).
-  // Only runs while authenticated; setState happens inside the promise.
+  // Rebuild favorites from the backend (which is saved) + cache/catalog (details).
   useEffect(() => {
     if (!isReady || !isAuthenticated) return;
     let active = true;
@@ -108,9 +95,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         );
       })
       .catch((err) => {
-        // An expired/invalid token shows up as 401: treat the user as logged
-        // out instead of surfacing a (noisy) error, and clear the stale token
-        // so the app stops retrying.
+        // 401 means the token expired: sign out and stop retrying.
         if (err instanceof ApiError && err.status === 401) {
           signOut();
           return;
@@ -136,8 +121,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
           : [item, ...prev],
       );
 
-      // Persist to the backend for real items (numeric id). Mock items with a
-      // non-numeric id stay local-only.
+      // Persist real items (numeric id) to the backend; mock items stay local-only.
       if (/^\d+$/.test(item.id)) {
         const itemId = Number(item.id);
         const action = exists ? "delete" : "save";

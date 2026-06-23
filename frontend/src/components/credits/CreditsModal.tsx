@@ -11,22 +11,11 @@ import { BEST_VALUE_PACKAGE_ID } from "@/lib/credits";
 import { ApiError, purchaseTokens } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
-/**
- * Purchase menu shown when the user taps "Add Credits".
- *
- * Mobile-first: renders as a bottom sheet that slides up from the bottom of
- * the screen. On large screens (lg+) it becomes a centered modal dialog.
- *
- * The user picks one package, then taps "Continue to payment". This calls the
- * backend `/tokens/purchase` endpoint, which creates a Stripe Checkout session
- * and returns its URL; the browser is then redirected to Stripe.
- */
 export function CreditsModal() {
   const { isOpen, closeCredits } = useCredits();
   const { isAuthenticated } = useAuth();
   const router = useRouter();
 
-  // Default the selection to the best-value package.
   const [selectedId, setSelectedId] = useState<string>(BEST_VALUE_PACKAGE_ID);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,8 +42,7 @@ export function CreditsModal() {
     };
   }, [isOpen, closeCredits]);
 
-  // Reset transient state whenever the sheet transitions to open. Done during
-  // render (React's recommended pattern) to avoid effect-driven cascades.
+  // Reset transient state when the sheet opens (during render, avoids an effect).
   const [wasOpen, setWasOpen] = useState(isOpen);
   if (isOpen !== wasOpen) {
     setWasOpen(isOpen);
@@ -103,7 +91,6 @@ export function CreditsModal() {
 
   return (
     <>
-      {/* Overlay */}
       <div
         aria-hidden={!isOpen}
         onClick={closeCredits}
@@ -112,7 +99,6 @@ export function CreditsModal() {
         }`}
       />
 
-      {/* Sheet / Dialog */}
       <div
         role="dialog"
         aria-modal="true"
@@ -129,10 +115,8 @@ export function CreditsModal() {
           }`}
       >
         <div className="flex flex-col px-5 pb-8 pt-4 lg:px-8 lg:pb-8 lg:pt-6">
-          {/* Grab handle (mobile only) */}
           <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-outline-variant lg:hidden" />
 
-          {/* Header */}
           <div className="mb-5 flex items-start justify-between gap-4">
             <div>
               <h2 className="font-serif text-2xl font-medium text-on-surface">
@@ -155,7 +139,6 @@ export function CreditsModal() {
             </button>
           </div>
 
-          {/* Packages (selectable) */}
           <div role="radiogroup" aria-label="Credit packages" className="flex flex-col gap-3">
             {CREDIT_PACKAGES.map((pkg) => {
               const perCredit = pkg.price / pkg.credits;
@@ -176,7 +159,6 @@ export function CreditsModal() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    {/* Radio indicator */}
                     <span
                       className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                         isSelected ? "border-secondary bg-secondary" : "border-outline"
@@ -213,7 +195,6 @@ export function CreditsModal() {
             })}
           </div>
 
-          {/* Error message */}
           {error && (
             <p
               role="alert"
@@ -223,7 +204,6 @@ export function CreditsModal() {
             </p>
           )}
 
-          {/* Continue to payment */}
           <button
             type="button"
             onClick={handleContinue}

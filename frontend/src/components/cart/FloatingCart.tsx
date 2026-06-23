@@ -5,7 +5,6 @@ import { useCart } from "@/components/cart/CartContext";
 export function FloatingCart() {
   const { count, openCheckout } = useCart();
 
-  // Appears once there is at least one item in the cart.
   if (count === 0) return null;
 
   return (
@@ -31,7 +30,6 @@ export function FloatingCart() {
             <circle cx="20" cy="21" r="1" />
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
           </svg>
-          {/* Small red dot when the cart has one or more items. */}
           <span className="absolute top-2 right-2 h-3 w-3 rounded-full bg-error border-2 border-primary-container" />
         </button>
       </div>

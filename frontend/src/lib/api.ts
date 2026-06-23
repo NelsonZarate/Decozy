@@ -1,23 +1,11 @@
-// Central API client for the Decozy FastAPI backend.
-//
-// All endpoints live under `${NEXT_PUBLIC_API_URL}` (defaults to the local
-// backend). This module also handles the JWT bearer token (persisted in
-// localStorage) and exposes `assetUrl()` to turn the backend's relative
-// `/static/...` paths into absolute, browser-loadable URLs.
-
-/** Base URL including the `/api/v1` prefix. */
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ??
   "http://localhost:8000/api/v1";
 
-/** Backend origin (without the `/api/v1` prefix), used for static assets. */
+// Backend origin without the /api/v1 prefix, used for static assets.
 export const API_ORIGIN = API_BASE.replace(/\/api\/v1$/, "");
 
 const TOKEN_KEY = "decozy.auth.token";
-
-// ---------------------------------------------------------------------------
-// Token storage
-// ---------------------------------------------------------------------------
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -46,16 +34,11 @@ export function clearToken(): void {
   }
 }
 
-/** Turn a backend-relative asset path (e.g. `/static/...`) into an absolute URL. */
 export function assetUrl(path: string | null | undefined): string {
   if (!path) return "";
   if (/^https?:\/\//i.test(path)) return path;
   return `${API_ORIGIN}${path.startsWith("/") ? "" : "/"}${path}`;
 }
-
-// ---------------------------------------------------------------------------
-// Low-level request helper
-// ---------------------------------------------------------------------------
 
 export class ApiError extends Error {
   readonly status: number;
@@ -68,11 +51,8 @@ export class ApiError extends Error {
 
 interface RequestOptions {
   method?: string;
-  /** JSON-serialisable body. Mutually exclusive with `formData`. */
   json?: unknown;
-  /** Raw body (FormData / URLSearchParams). Sets no JSON content-type. */
   body?: BodyInit;
-  /** Attach the bearer token when available. Defaults to true. */
   auth?: boolean;
   headers?: Record<string, string>;
 }
@@ -116,10 +96,6 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   if (contentType.includes("application/json")) return res.json() as Promise<T>;
   return res.text() as Promise<T>;
 }
-
-// ---------------------------------------------------------------------------
-// Response types
-// ---------------------------------------------------------------------------
 
 export interface AuthTokenResponse {
   access_token: string;
@@ -181,10 +157,6 @@ export interface SavedItem {
   item_id: number;
 }
 
-// ---------------------------------------------------------------------------
-// Auth
-// ---------------------------------------------------------------------------
-
 export function registerLocal(email: string, password: string): Promise<AuthTokenResponse> {
   return request<AuthTokenResponse>("/auth/register", {
     method: "POST",
@@ -194,8 +166,6 @@ export function registerLocal(email: string, password: string): Promise<AuthToke
 }
 
 export function loginLocal(email: string, password: string): Promise<AuthTokenResponse> {
-  // The backend uses OAuth2PasswordRequestForm: x-www-form-urlencoded with
-  // `username` + `password` fields.
   const form = new URLSearchParams();
   form.set("username", email);
   form.set("password", password);
@@ -215,10 +185,6 @@ export function loginGoogle(idToken: string): Promise<AuthTokenResponse> {
   });
 }
 
-// ---------------------------------------------------------------------------
-// User
-// ---------------------------------------------------------------------------
-
 export function getUserInfo(): Promise<UserInfo> {
   return request<UserInfo>("/User/get_user_info");
 }
@@ -236,10 +202,6 @@ export function deleteSavedItem(itemId: number): Promise<{ detail: string }> {
     method: "DELETE",
   });
 }
-
-// ---------------------------------------------------------------------------
-// Projects
-// ---------------------------------------------------------------------------
 
 export function listProjects(): Promise<ProjectSummary[]> {
   return request<ProjectSummary[]>("/projects/list_projects");
@@ -272,10 +234,6 @@ export function deleteProject(projectId: number): Promise<{ detail: string }> {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Uploads / generation
-// ---------------------------------------------------------------------------
-
 export function uploadImage(file: Blob, userPrompt: string): Promise<UploadResponse> {
   const form = new FormData();
   const fileToSend =
@@ -284,10 +242,6 @@ export function uploadImage(file: Blob, userPrompt: string): Promise<UploadRespo
   form.append("user_prompt", userPrompt);
   return request<UploadResponse>("/uploads/", { method: "POST", body: form });
 }
-
-// ---------------------------------------------------------------------------
-// Payments
-// ---------------------------------------------------------------------------
 
 export function createCheckoutSession(
   projectId: number,
@@ -299,11 +253,6 @@ export function createCheckoutSession(
   });
 }
 
-/**
- * Create a Stripe Checkout Session for the favorites cart, attaching the
- * buyer's name and shipping address. Returns the URL to redirect to.
- * Requires authentication.
- */
 export function createCartCheckoutSession(
   itemIds: number[],
   customerName: string,
@@ -319,16 +268,11 @@ export function createCartCheckoutSession(
   });
 }
 
-/** Verify a cart Checkout Session payment status after the Stripe redirect. */
 export function verifyCartSession(sessionId: string): Promise<{ status: string }> {
   return request<{ status: string }>(
     `/payments/verify-cart-session/${encodeURIComponent(sessionId)}`,
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tokens / credits
-// ---------------------------------------------------------------------------
 
 export interface TokenBalance {
   tokens: number;
@@ -347,20 +291,14 @@ export interface VerifyTokenSessionResponse {
   balance?: number;
 }
 
-/** Current authenticated user's token (credit) balance. */
 export function getTokenBalance(): Promise<TokenBalance> {
   return request<TokenBalance>("/tokens/balance");
 }
 
-/** Token packages offered by the backend (source of truth for pricing). */
 export function listTokenPackages(): Promise<TokenPackage[]> {
   return request<TokenPackage[]>("/tokens/packages", { auth: false });
 }
 
-/**
- * Start a token purchase. Returns the Stripe Checkout URL to redirect to.
- * Requires authentication (the backend ties the purchase to the user).
- */
 export function purchaseTokens(packageId: string): Promise<{ checkout_url: string }> {
   return request<{ checkout_url: string }>("/tokens/purchase", {
     method: "POST",
@@ -368,10 +306,6 @@ export function purchaseTokens(packageId: string): Promise<{ checkout_url: strin
   });
 }
 
-/**
- * Verify a completed Checkout Session and credit the tokens to the user.
- * Idempotent on the backend (a session is only credited once).
- */
 export function verifyTokenSession(sessionId: string): Promise<VerifyTokenSessionResponse> {
   return request<VerifyTokenSessionResponse>(
     `/tokens/verify-session/${encodeURIComponent(sessionId)}`,

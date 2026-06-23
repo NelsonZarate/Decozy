@@ -4,10 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navTabs, isTabActive } from "@/components/layout/navItems";
 
-/**
- * Desktop-only inline navigation rendered inside the Header.
- * Hidden on mobile (the BottomNav handles navigation there).
- */
 export function DesktopNav() {
   const pathname = usePathname();
 

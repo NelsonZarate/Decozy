@@ -34,7 +34,6 @@ export function MyItemsPage() {
           </p>
         </div>
       ) : (
-        /* Items grid */
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
           {favorites.map((item) => (
             <div
