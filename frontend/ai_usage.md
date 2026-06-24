@@ -173,6 +173,9 @@ by hand. Below is the breakdown by area, file by file.
   project tidy and easy to understand. The final organization was reviewed and
   adopted manually.
 
+### 3.12. Github Commit Messages (Gemini)
+
+- **Gemini** helped write clear and precise commit messages, improving project readability and understanding.
 ---
 
 ## 4. Closing notes

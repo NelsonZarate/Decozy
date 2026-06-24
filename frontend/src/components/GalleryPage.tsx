@@ -9,6 +9,8 @@ import { changeProjectTitle } from "@/lib/api";
 
 const MAX_TITLE_LENGTH = 24;
 
+type GallerySort = "recent" | "oldest" | "az" | "za";
+
 function isEditableProject(id: string): boolean {
   return /^p\d+$/.test(id);
 }
@@ -40,6 +42,7 @@ function formatDate(value: string): string {
 
 export function GalleryPage() {
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<GallerySort>("recent");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const { projects: generatedProjects, loadProjects, updateProjectTitle } = useProjects();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -102,10 +105,24 @@ export function GalleryPage() {
     return () => clearTimeout(timeout);
   }, [highlightId, generatedProjects.length]);
 
-  const projects = allProjects.filter((p) => {
-    if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  const projects = allProjects
+    .filter((p) => {
+      if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sort) {
+        case "oldest":
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case "az":
+          return a.title.localeCompare(b.title);
+        case "za":
+          return b.title.localeCompare(a.title);
+        case "recent":
+        default:
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+    });
 
   return (
     <main className="flex-1 px-4 pb-24 lg:max-w-6xl lg:mx-auto lg:w-full lg:px-8 lg:pt-4 lg:pb-12">
@@ -132,7 +149,34 @@ export function GalleryPage() {
         </div>
       </div>
 
-      <div className="mb-4 lg:mt-4" />
+      <div className="mt-3 mb-4 lg:mt-4 lg:max-w-2xl">
+        <div className="relative inline-block">
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as GallerySort)}
+            aria-label="Sort projects"
+            className="appearance-none rounded-lg border border-outline-variant bg-surface-container-lowest py-2.5 pl-3 pr-9 text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary-container"
+          >
+            <option value="recent">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="az">Name: A–Z</option>
+            <option value="za">Name: Z–A</option>
+          </select>
+          <svg
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-outline"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
+      </div>
 
       {isReady && isAuthenticated && allProjects.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center py-16 lg:py-28">
@@ -147,7 +191,7 @@ export function GalleryPage() {
           </p>
         </div>
       ) : (
-      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-6">
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-6 lg:items-start">
         {projects.map((project) => (
           <div
             key={project.id}
