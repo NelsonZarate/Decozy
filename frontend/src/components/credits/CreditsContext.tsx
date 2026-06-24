@@ -12,6 +12,7 @@ interface CreditsContextValue {
   closeCredits: () => void;
   balance: number | null;
   refreshBalance: () => Promise<void>;
+  adjustBalance: (delta: number) => void;
 }
 
 const CreditsContext = createContext<CreditsContextValue | undefined>(undefined);
@@ -31,6 +32,13 @@ export function CreditsProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Ignore: keep the previous value (likely unauthenticated or offline).
     }
+  }, []);
+
+  // Optimistically nudge the displayed balance (e.g. -1 when a generation
+  // starts) so the badge updates instantly without a page reload. The real
+  // value is reconciled later via refreshBalance().
+  const adjustBalance = useCallback((delta: number) => {
+    setBalance((prev) => (prev === null ? prev : Math.max(0, prev + delta)));
   }, []);
 
   // Reset the balance to null on sign-out, during render (avoids an effect).
@@ -58,7 +66,7 @@ export function CreditsProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <CreditsContext.Provider
-      value={{ isOpen, openCredits, closeCredits, balance, refreshBalance }}
+      value={{ isOpen, openCredits, closeCredits, balance, refreshBalance, adjustBalance }}
     >
       {children}
     </CreditsContext.Provider>

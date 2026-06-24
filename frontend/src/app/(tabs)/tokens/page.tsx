@@ -163,10 +163,10 @@ function CancelledView({ openCredits }: { openCredits: () => void }) {
           Choose a package
         </button>
         <Link
-          href="/"
+          href="/design"
           className="flex h-11 w-full items-center justify-center rounded-2xl text-sm font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
         >
-          Back to home
+          Back to design
         </Link>
       </div>
     </>
@@ -176,10 +176,10 @@ function CancelledView({ openCredits }: { openCredits: () => void }) {
 function HomeButton() {
   return (
     <Link
-      href="/"
+      href="/design"
       className="mt-6 flex h-11 w-full items-center justify-center rounded-2xl bg-primary-container text-sm font-semibold text-on-primary transition-all hover:opacity-90 active:scale-[0.98]"
     >
-      Back to home
+      Back to design
     </Link>
   );
 }

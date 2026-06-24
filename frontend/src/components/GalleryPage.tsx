@@ -134,6 +134,19 @@ export function GalleryPage() {
 
       <div className="mb-4 lg:mt-4" />
 
+      {isReady && isAuthenticated && allProjects.length === 0 ? (
+        <div className="flex flex-col items-center justify-center text-center py-16 lg:py-28">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-outline mb-3">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
+          <p className="text-sm font-medium text-on-surface lg:text-base">No projects yet</p>
+          <p className="text-xs text-on-surface-variant mt-1 lg:text-sm">
+            Generate your first design to start building your gallery.
+          </p>
+        </div>
+      ) : (
       <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-6">
         {projects.map((project) => (
           <div
@@ -291,6 +304,7 @@ export function GalleryPage() {
           </div>
         ))}
       </div>
+      )}
     </main>
   );
 }

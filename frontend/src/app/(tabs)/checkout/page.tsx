@@ -139,10 +139,10 @@ function CheckoutResult() {
 function HomeButton() {
   return (
     <Link
-      href="/"
+      href="/design"
       className="mt-6 flex h-11 w-full items-center justify-center rounded-2xl bg-primary-container text-sm font-semibold text-on-primary transition-all hover:opacity-90 active:scale-[0.98]"
     >
-      Back to home
+      Back to design
     </Link>
   );
 }

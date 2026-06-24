@@ -72,7 +72,7 @@ export function HeroSection() {
               href="/design"
               className="inline-block px-8 py-4 rounded-full bg-primary-container text-on-primary-container font-semibold text-lg shadow-xl hover:scale-105 transition-transform"
             >
-              Cria os teus designs
+              Create your own designs
             </Link>
           </div>
         </div>

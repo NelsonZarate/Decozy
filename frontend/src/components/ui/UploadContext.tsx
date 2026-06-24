@@ -9,7 +9,9 @@ import {
   useState,
 } from "react";
 import { assetUrl, getProject, uploadImage } from "@/lib/api";
+import { getStylePrompt } from "@/lib/designStyles";
 import { useProjects } from "@/components/projects/ProjectsContext";
+import { useCredits } from "@/components/credits/CreditsContext";
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -61,6 +63,7 @@ const UploadContext = createContext<UploadContextValue | undefined>(undefined);
 
 export function UploadProvider({ children }: { children: React.ReactNode }) {
   const { addProject } = useProjects();
+  const { adjustBalance, refreshBalance } = useCredits();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [instructions, setInstructions] = useState("");
@@ -122,10 +125,17 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
 
     setJobs((prev) => [job, ...prev]);
 
-    // Combine the selected style with the free-form instructions into one prompt.
+    // A generation costs 1 credit. Drop the badge instantly (no reload); the
+    // real balance is reconciled with the backend once the upload completes.
+    adjustBalance(-1);
+
+    // The user's free-form instructions come first, then the hidden English
+    // phrase tied to the chosen style is appended behind it. The user never
+    // sees this style phrase — it only travels to the backend.
+    const stylePrompt = getStylePrompt(styleAtStart);
     const promptParts = [
-      styleAtStart && styleAtStart !== "Keep Current" ? `Style: ${styleAtStart}.` : null,
       instructionsAtStart.trim() || null,
+      stylePrompt,
     ].filter(Boolean);
     const userPrompt = promptParts.join(" ") || "Redesign this room.";
 
@@ -141,6 +151,9 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
       try {
         const { project_id } = await uploadImage(blob, userPrompt);
         const realId = `p${project_id}`;
+
+        // Reconcile the optimistic credit decrement with the backend's truth.
+        refreshBalance();
 
         // Rename the job to the backend id so the tray link and gallery entry match.
         const urls = jobUrlsRef.current.get(tempId);
@@ -182,9 +195,11 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
         setJobs((prev) =>
           prev.map((j) => (j.id === currentId ? { ...j, status: "error" } : j)),
         );
+        // The credit may not have been spent if the upload failed — resync.
+        refreshBalance();
       }
     })();
-  }, [selectedStyle, instructions, clearImage, addProject]);
+  }, [selectedStyle, instructions, clearImage, addProject, adjustBalance, refreshBalance]);
 
   // Revoke every outstanding object URL when the provider unmounts.
   useEffect(() => {
@@ -206,7 +221,10 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
         setSelectedStyle,
         instructions,
         setInstructions,
-        canGenerate: imageUrl !== null,
+        canGenerate:
+          imageUrl !== null &&
+          selectedStyle !== null &&
+          instructions.trim().length > 0,
         startGeneration,
         jobs,
         dismissJob,
