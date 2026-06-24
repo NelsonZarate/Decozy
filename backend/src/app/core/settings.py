@@ -21,9 +21,9 @@ class Settings(BaseSettings):
     port: int = 8000
     upload_dir: str = "static/uploads"
     # Variaveis para o Google OAuth
-    google_client_id: str
-    google_client_secret: str
-    google_redirect_uri: str
+    NEXT_PUBLIC_GOOGLE_CLIENT_ID: str
+    NEXT_PUBLIC_GOOGLE_CLIENT_SECRET: str
+    NEXT_PUBLIC_GOOGLE_REDIRECT_URI: str
 
     # API KEY
     nvidia_api_key: str

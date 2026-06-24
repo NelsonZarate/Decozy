@@ -264,15 +264,15 @@ def build_prompt_architect_crew() -> Crew:
     prompt_architect = Agent(
         role="Interior Prompt Architect",
         goal=(
-            "Analyze the user's request to determine if they want to modify an existing room. "
-            "Extract any items they want to add, identify if they want to remove items, or "
-            "flag if no changes are requested."
+            "Analyze the user's request to modify an existing room layout. "
+            "Isolate modifications without altering the pre-existing style, architecture, or base assets."
         ),
         backstory=(
-            "You are a meticulous creative director for AI interior imagery. "
-            "You only trigger image modifications if the user explicitly asks to add or remove something. "
-            "If they just comment on the room, you set the intent to 'none'. "
-            "When modifications are requested, you write precise Flux-ready image prompts."
+            "You are a strict creative director for AI interior imagery. Your golden rule is PRESERVATION. "
+            "When a user asks to modify an existing room, you MUST retain 100% of the original room style, "
+            "colors, materials, and layout, only additive or subtractive changes are allowed. "
+            "You never hallucinate changes that the user didn't explicitly request. "
+            "If the user wants a 'red rug', the existing blue sofa and white walls MUST remain untouched in your description."
         ),
         llm=llm,
         verbose=True,
@@ -282,15 +282,17 @@ def build_prompt_architect_crew() -> Crew:
     validate_and_optimize_prompt = Task(
         description=(
             "Review this user prompt: {user_prompt}\n\n"
+            "CRITICAL CONSTRAINTS FOR OPTIMIZATION:\n"
             "1. Is it about interior decoration? If not, status is 'rejected' with a reason.\n"
-            "2. If valid, what is the intent? Did they ask to 'add' an item, 'remove' an item, or 'none' (just chatting/no changes)?\n"
-            "3. If intent is 'add', list the explicit items they asked for in 'items_to_add'.\n"
-            "4. If intent is 'add' or 'remove', write an optimized Flux prompt reflecting this change.\n"
-            "5. If intent is 'none', optimized_prompt can be null."
+            "2. If valid, isolate the intent ('add', 'remove', or 'none').\n"
+            "3. If the intent is 'add' or 'remove', you MUST generate an `optimized_prompt` designed for an image-to-image or inpainting model.\n"
+            "4. DO NOT rewrite the entire room composition. Use anchoring language. Maintain the base environment identical. "
+            "Only describe the precise insertion or removal of the item: {user_prompt}.\n"
+            "5. If adding items, explicitly list them in 'items_to_add'."
         ),
         expected_output=(
-            "Strict JSON matching the PromptArchitectureResult schema. Example for adding: "
-            '{"status":"valid","intent":"add","items_to_add":["red rug"],"optimized_prompt":"..."}'
+            "Strict JSON matching the PromptArchitectureResult schema. "
+            "The optimized_prompt must focus purely on modifying the targeted elements while preserving the original room framework."
         ),
         agent=prompt_architect,
         output_json=PromptArchitectureResult,
@@ -317,16 +319,14 @@ def build_asset_crew(
     asset_specialist = Agent(
         role="Interior E-commerce Asset Specialist",
         goal=(
-            "Create realistic shoppable furniture or decor assets specifically for the items "
-            "requested by the user, save them using the database tool, and return strict JSON."
+            "Identify and extract the single specific furniture or decor asset requested by the user, "
+            "save it using the database tool, and return strict JSON."
         ),
         backstory=(
-            "You are a product curator for an interior design marketplace. "
-            "You turn requested room additions into believable e-commerce assets with "
-            "clear names, practical categories, plausible prices, and purchase links. "
-            "You ONLY create assets for the specific items you are told to create in the prompt. "
-            "You are disciplined about structured data: when asked for JSON, you return "
-            "only valid JSON with no prose, comments, markdown, or code fences."
+            "You are a highly disciplined product curator. You never inventory the entire room. "
+            "You ONLY look at the specific asset that was freshly added or targeted by the user. "
+            "If the user added a lamp, you only create an asset for that lamp. You ignore the pre-existing sofa, walls, and floors. "
+            "You output pure, structured data with absolutely no conversational prose."
         ),
         llm=llm,
         tools=[database_tool],
@@ -339,17 +339,14 @@ def build_asset_crew(
         description=(
             "The image was generated from this optimized prompt: {optimized_prompt}\n\n"
             "Generated image URL: {generated_image_url}\n\n"
-            "CRITICAL INSTRUCTION: Create a realistic e-commerce asset for this item: {items_to_create}\n\n"
+            "DANGER ZONE INSTRUCTION: Look ONLY at the item explicit in: {items_to_create}.\n"
+            "Do NOT create database entries for pre-existing furniture seen in the background.\n"
             "Invent a commercial product name, category, a plausible price (e.g. '€299.99'), "
-            "and a plausible buy URL (e.g. 'https://www.ikea.com/product/...'). "
-            "You MUST call the 'save_recommended_furniture_item' tool with name, category, "
-            "price, and buy_url. After the tool succeeds, return exactly the JSON returned "
-            "by the tool."
+            "and a plausible buy URL. You MUST call the 'save_recommended_furniture_item' tool. "
+            "After the tool succeeds, return exactly the JSON response."
         ),
         expected_output=(
-            "Strict JSON only. For successful saves, return an object matching: "
-            '{"status":"saved","item_id":1,"name":"...","category":"...",'
-            '"price":"...","image_url":"...","buy_url":"..."}.'
+            "Strict JSON only matching the SavedItemResult schema, mapping exclusively the requested asset."
         ),
         agent=asset_specialist,
         output_json=SavedItemResult,
@@ -362,7 +359,7 @@ def build_asset_crew(
         process=Process.sequential,
         verbose=True,
     )
-
+    
 
 def _extract_strict_json(crew_result: Any) -> str:
     raw = getattr(crew_result, "raw", None)

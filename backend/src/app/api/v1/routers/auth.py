@@ -101,7 +101,7 @@ def login_google(data: GoogleLoginSchema, db: Session = Depends(get_db)):
     google_user = response.json()
 
     # Segurança: Verificar se o token foi gerado para o teu Client ID
-    if google_user.get("aud") != settings.google_client_id:
+    if google_user.get("aud") != settings.NEXT_PUBLIC_GOOGLE_CLIENT_ID:
         raise HTTPException(
             status_code=400, detail="Audience do Token inválida (Fraude)."
         )
