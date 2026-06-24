@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useCart } from "@/components/cart/CartContext";
+import { useCart, parsePrice, formatPrice } from "@/components/cart/CartContext";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { ApiError, createCartCheckoutSession } from "@/lib/api";
 
 export function CartCheckoutModal() {
-  const { items, total, totalLabel, isCheckoutOpen, closeCheckout } = useCart();
+  const { items, total, totalLabel, isCheckoutOpen, closeCheckout, removeAll, addItem, removeItem } = useCart();
   const { isAuthenticated } = useAuth();
   const router = useRouter();
 
@@ -45,6 +45,16 @@ export function CartCheckoutModal() {
   const payableIds = items
     .map((item) => Number(item.id))
     .filter((id) => Number.isInteger(id) && id > 0);
+
+  // Group identical items so each line shows a quantity instead of repeating.
+  const groupedItems = items.reduce<
+    { item: (typeof items)[number]; quantity: number }[]
+  >((acc, item) => {
+    const existing = acc.find((entry) => entry.item.id === item.id);
+    if (existing) existing.quantity += 1;
+    else acc.push({ item, quantity: 1 });
+    return acc;
+  }, []);
 
   const canPay =
     !isSubmitting && total > 0 && payableIds.length > 0 && name.trim() !== "" && address.trim() !== "";
@@ -127,6 +137,74 @@ export function CartCheckoutModal() {
               </svg>
             </button>
           </div>
+
+          {groupedItems.length > 0 && (
+            <ul className="mb-4 flex max-h-56 flex-col gap-3 overflow-y-auto">
+              {groupedItems.map(({ item, quantity }) => {
+                const unitPrice = parsePrice(item.price);
+                return (
+                  <li key={item.id} className="flex items-center gap-3">
+                    <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-[#f0efed]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="h-full w-full object-contain p-1.5"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-on-surface">{item.name}</p>
+                      <p className="text-xs text-on-surface-variant">
+                        {formatPrice(unitPrice)} each
+                      </p>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <div className="flex items-center rounded-full border border-outline-variant">
+                          <button
+                            type="button"
+                            aria-label={`Decrease ${item.name} quantity`}
+                            onClick={() => removeItem(item.id)}
+                            className="flex h-7 w-7 items-center justify-center rounded-full text-on-surface hover:bg-surface-container-high active:scale-95 transition-all"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                              <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                          </button>
+                          <span className="min-w-[1.5rem] text-center text-sm font-semibold tabular-nums text-on-surface">
+                            {quantity}
+                          </span>
+                          <button
+                            type="button"
+                            aria-label={`Increase ${item.name} quantity`}
+                            onClick={() => addItem(item)}
+                            className="flex h-7 w-7 items-center justify-center rounded-full text-on-surface hover:bg-surface-container-high active:scale-95 transition-all"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                              <line x1="12" y1="5" x2="12" y2="19" />
+                              <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold tabular-nums text-on-surface">
+                      {formatPrice(unitPrice * quantity)}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`Remove ${item.name} from cart`}
+                      onClick={() => removeAll(item.id)}
+                      className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high active:scale-95 transition-all"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                      </svg>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
 
           <div className="mb-5 flex items-center justify-between rounded-2xl bg-secondary-container/50 px-4 py-3">
             <span className="text-sm font-medium text-on-secondary-container">Total</span>

@@ -1,10 +1,16 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useCart } from "@/components/cart/CartContext";
 
 export function FloatingCart() {
   const { count, openCheckout } = useCart();
+  const pathname = usePathname();
 
+  // The cart button lives only on the Favorites tab. Items stay in the cart
+  // when navigating away (CartProvider sits above the routes), so coming back
+  // to Favorites still shows them.
+  if (!pathname.startsWith("/my-items")) return null;
   if (count === 0) return null;
 
   return (

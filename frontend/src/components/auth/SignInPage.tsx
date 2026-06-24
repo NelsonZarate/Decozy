@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
-import { ApiError, loginLocal } from "@/lib/api";
+import { GoogleSignInButton, decodeGoogleProfile } from "@/components/auth/GoogleSignInButton";
+import { ApiError, loginGoogle, loginLocal } from "@/lib/api";
 
 export function SignInPage() {
   const router = useRouter();
@@ -41,9 +41,22 @@ export function SignInPage() {
     }
   }
 
-  function handleGoogleSignIn() {
-    signIn({ name: "Google User", email: "user@gmail.com" });
-    router.push("/design");
+  async function handleGoogleCredential(idToken: string) {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await loginGoogle(idToken);
+      const profile = decodeGoogleProfile(idToken);
+      signIn({ name: profile.name, email: profile.email }, res.access_token);
+      router.push("/design");
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Could not sign in with Google. Please try again.",
+      );
+      setLoading(false);
+    }
   }
 
   const inputClass = "w-full px-4 py-3 border-2 border-outline-variant/40 rounded-xl text-sm bg-surface-container-lowest placeholder-outline focus:outline-none focus:border-primary-container transition-colors";
@@ -113,7 +126,11 @@ export function SignInPage() {
           <div className="flex-1 h-px bg-outline-variant/50" />
         </div>
 
-        <GoogleSignInButton label="Sign in with Google" onClick={handleGoogleSignIn} />
+        <GoogleSignInButton
+          label="signin_with"
+          onCredential={handleGoogleCredential}
+          onError={(msg) => setError(msg)}
+        />
 
         <p className="text-center text-sm text-on-surface-variant mt-6">
           Don&apos;t have an account?{" "}

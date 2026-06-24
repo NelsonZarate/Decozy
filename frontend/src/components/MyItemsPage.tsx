@@ -1,11 +1,34 @@
 "use client";
 
-import { useCart } from "@/components/cart/CartContext";
+import { useState } from "react";
+import { useCart, parsePrice } from "@/components/cart/CartContext";
 import { useFavorites } from "@/components/favorites/FavoritesContext";
+
+type FavoritesSort = "az" | "za" | "price-asc" | "price-desc";
 
 export function MyItemsPage() {
   const { addItem, count, openCheckout } = useCart();
   const { favorites, toggleFavorite } = useFavorites();
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<FavoritesSort>("az");
+
+  const visibleFavorites = [...favorites]
+    .filter(
+      (item) => !search || item.name.toLowerCase().includes(search.toLowerCase()),
+    )
+    .sort((a, b) => {
+      switch (sort) {
+        case "za":
+          return b.name.localeCompare(a.name);
+        case "price-asc":
+          return parsePrice(a.price) - parsePrice(b.price);
+        case "price-desc":
+          return parsePrice(b.price) - parsePrice(a.price);
+        case "az":
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
 
   function handleAddToCart(item: (typeof favorites)[number]) {
     // If the cart already holds an item, adding another opens the checkout menu.
@@ -23,6 +46,51 @@ export function MyItemsPage() {
         </p>
       </section>
 
+      <div className="lg:max-w-2xl">
+        <div className="relative mb-4 lg:mb-0">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-outline" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search favorites..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 border border-outline-variant rounded-lg text-sm bg-surface-container-lowest placeholder-outline focus:outline-none focus:ring-1 focus:ring-primary-container"
+          />
+        </div>
+      </div>
+
+      <div className="mt-3 mb-4 lg:mt-4 lg:max-w-2xl">
+        <div className="relative inline-block">
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as FavoritesSort)}
+            aria-label="Sort favorites"
+            className="appearance-none rounded-lg border border-outline-variant bg-surface-container-lowest py-2.5 pl-3 pr-9 text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary-container"
+          >
+            <option value="az">Name: A–Z</option>
+            <option value="za">Name: Z–A</option>
+            <option value="price-asc">Price: low to high</option>
+            <option value="price-desc">Price: high to low</option>
+          </select>
+          <svg
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-outline"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
+      </div>
+
       {favorites.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center py-16 lg:py-28">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-outline mb-3">
@@ -35,7 +103,7 @@ export function MyItemsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
-          {favorites.map((item) => (
+          {visibleFavorites.map((item) => (
             <div
               key={item.id}
               className="flex flex-col bg-surface-container-lowest rounded-2xl border border-outline-variant/20 p-3"

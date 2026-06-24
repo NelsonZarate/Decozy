@@ -33,6 +33,7 @@ interface CartContextValue {
   totalLabel: string;
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
+  removeAll: (id: string) => void;
   clear: () => void;
   isCheckoutOpen: boolean;
   openCheckout: () => void;
@@ -59,9 +60,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  // Remove every unit of a given item id (used by the checkout "x" button).
+  const removeAll = useCallback((id: string) => {
+    setItems((prev) => prev.filter((i) => i.id !== id));
+  }, []);
+
   const clear = useCallback(() => setItems([]), []);
-  const openCheckout = useCallback(() => setIsCheckoutOpen(true), []);
-  const closeCheckout = useCallback(() => setIsCheckoutOpen(false), []);
+  const openCheckout = useCallback(() => setIsCheckoutOpen(true), []);const closeCheckout = useCallback(() => setIsCheckoutOpen(false), []);
 
   const total = useMemo(
     () => items.reduce((sum, item) => sum + parsePrice(item.price), 0),
@@ -76,12 +81,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       totalLabel: formatPrice(total),
       addItem,
       removeItem,
+      removeAll,
       clear,
       isCheckoutOpen,
       openCheckout,
       closeCheckout,
     }),
-    [items, total, addItem, removeItem, clear, isCheckoutOpen, openCheckout, closeCheckout],
+    [items, total, addItem, removeItem, removeAll, clear, isCheckoutOpen, openCheckout, closeCheckout],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

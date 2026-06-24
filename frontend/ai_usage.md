@@ -173,11 +173,14 @@ by hand. Below is the breakdown by area, file by file.
   project tidy and easy to understand. The final organization was reviewed and
   adopted manually.
 
+### 3.12. Github Commit Messages (Gemini)
+
+- **Gemini** helped write clear and precise commit messages, improving project readability and understanding.
 ---
 
 ## 4. Closing notes
 
-- **Human review:** even though AI helped with most of the code, everything was
+- **Human review:** even though AI helped across all of the project, everything was
   reviewed, integrated, and adjusted manually to ensure consistency, correct
   behavior, and proper connection to the backend.
 - **Backend integration:** the API contracts (endpoints, types) were aligned
@@ -188,5 +191,5 @@ by hand. Below is the breakdown by area, file by file.
 
 ---
 
-*Document created for transparency about how AI helped during the development
+*Document created by AI for transparency about how AI helped during the development
 of this project.*

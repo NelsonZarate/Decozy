@@ -3,61 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useUpload } from "@/components/ui/UploadContext";
-
-const styles = [
-  {
-    name: "Keep Current",
-    image: "",
-  },
-  {
-    name: "Scandinavian",
-    image: "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=300&h=300&fit=crop&q=80",
-  },
-  {
-    name: "Industrial",
-    image: "https://planner5d.com/blog/content/images/2025/07/industrial-style.webp",
-  },
-  {
-    name: "Minimalist",
-    image: "https://cdn.apartmenttherapy.info/image/upload/f_jpg,q_auto:eco,c_fill,g_auto,w_1500,ar_4:3/at%2Fhouse%20tours%2F2023-House-Tours%2F2023-October%2Fmiranda-co%2Ftours-brooklyn-miranda-co-6",
-  },
-  {
-    name: "Mid-Century",
-    image: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=300&h=300&fit=crop&q=80",
-  },
-  {
-    name: "Bohemian",
-    image: "https://chandelierslife.com/cdn/shop/articles/thumbnail_46d8851b-3fb0-485a-98ba-aaf952087285.jpg?v=1737637408",
-  },
-  {
-    name: "Japanese",
-    image: "https://web-japan.org/trends/img/fas202503_interior01L.jpg",
-  },
-  {
-    name: "Art Deco",
-    image: "https://cdn.shopify.com/s/files/1/0710/7693/8014/files/contemporary-japanese-wall-art-set-of-3-wall-art-prints-599676.webp?v=1758281424",
-  },
-  {
-    name: "Coastal",
-    image: "https://images.unsplash.com/photo-1779903726785-7cf25bed78f7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGNvYXN0YWwlMjBpbnRlcmlvciUyMGRlc2lnbnxlbnwwfHwwfHx8MA%3D%3D",
-  },
-  {
-    name: "Farmhouse",
-    image: "https://cdn.decorilla.com/online-decorating/wp-content/uploads/2023/04/Modern-farmhouse-decor-in-an-open-living-space-by-Decorilla-1024x683.jpeg?width=900",
-  },
-  {
-    name: "Mediterranean",
-    image: "https://mobilious.com/cdn/shop/articles/Mediterranean_Interior_Design.png?v=1746261208",
-  },
-  {
-    name: "Contemporary",
-    image: "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=300&h=300&fit=crop&q=80",
-  },
-  {
-    name: "Rustic",
-    image: "https://cdn.decorilla.com/online-decorating/wp-content/uploads/2024/12/Mountain-rustic-home-before-and-after-by-Decorilla-1024x683.jpeg?width=900",
-  },
-];
+import { designStyles as styles } from "@/lib/designStyles";
 
 export function StyleSelector() {
   const { imageUrl, selectedStyle, setSelectedStyle } = useUpload();
