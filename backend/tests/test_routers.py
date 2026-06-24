@@ -53,16 +53,50 @@ class TestUserRouter:
         assert resp.status_code == 200
         assert resp.json()["email"] == "test@example.com"
 
-    def test_save_item_not_found(self, client: TestClient, auth_headers: dict):
-        # Item doesn't exist - SQLite may not enforce FK, but logic should work
-        resp = client.post("/api/v1/User/save_item/9999", headers=auth_headers)
-        # Will succeed on SQLite (no FK enforcement) or fail gracefully
-        assert resp.status_code in (201, 500)
+    def test_save_item(self, client: TestClient, auth_headers: dict, db_session: Session):
+        from app.models.item import UserSavedItemModel
+
+        project = ProjectModel(user_id=1, title="P")
+        db_session.add(project)
+        db_session.commit()
+        db_session.refresh(project)
+
+        item = ItemModel(project_id=project.id, name="Lamp", category="Lighting", image_url="/img.png")
+        db_session.add(item)
+        db_session.commit()
+        db_session.refresh(item)
+
+        resp = client.post(f"/api/v1/User/save_item/{item.id}", headers=auth_headers)
+        assert resp.status_code == 201
 
     def test_list_saved_items_empty(self, client: TestClient, auth_headers: dict):
         resp = client.get("/api/v1/User/list_saved_items", headers=auth_headers)
         assert resp.status_code == 200
         assert resp.json() == []
+
+    def test_delete_saved_item(self, client: TestClient, auth_headers: dict, db_session: Session):
+        from app.models.item import ItemModel, UserSavedItemModel
+
+        project = ProjectModel(user_id=1, title="P")
+        db_session.add(project)
+        db_session.commit()
+        db_session.refresh(project)
+
+        item = ItemModel(project_id=project.id, name="Chair", category="Seating", image_url="/img.png")
+        db_session.add(item)
+        db_session.commit()
+        db_session.refresh(item)
+
+        saved = UserSavedItemModel(user_id=1, item_id=item.id)
+        db_session.add(saved)
+        db_session.commit()
+
+        resp = client.delete(f"/api/v1/User/delete_saved_item/{item.id}", headers=auth_headers)
+        assert resp.status_code == 200
+
+    def test_delete_saved_item_not_found(self, client: TestClient, auth_headers: dict):
+        resp = client.delete("/api/v1/User/delete_saved_item/9999", headers=auth_headers)
+        assert resp.status_code == 404
 
 
 class TestAuthRequired:

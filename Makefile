@@ -6,15 +6,20 @@ install:
 	@uv sync
 
 start:
-	@make env
-	@make build
-	@make db-upgrade
+	@$(MAKE) env
+	@$(MAKE) build
+	@echo "Waiting for api..."
+	@until docker compose exec api true >/dev/null 2>&1; do \
+		sleep 2; \
+	done
+	@$(MAKE) db-upgrade
+	@$(MAKE) tests
 
 up:
-	docker-compose up -d
+	docker compose up -d
 
 build:
-	docker-compose up --build
+	docker compose up -d --build
 
 db-migrate:
 	@if [ -z "$(m)" ]; then \
@@ -34,7 +39,7 @@ db-downgrade:
 
 
 logs:
-	docker-compose logs -f
+	docker compose logs -f
 
 
 env:
@@ -44,3 +49,6 @@ env:
 	else \
 		echo "ℹ️  .env já existe"; \
 	fi
+
+tests:
+	@docker compose exec api uv run pytest -v --disable-warnings --maxfail=1
