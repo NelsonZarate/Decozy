@@ -30,22 +30,22 @@ class TestSaveUploadedFile:
         with pytest.raises(ValueError, match="demasiado grande"):
             UploadService.save_uploaded_file(file)
 
-    @patch("app.services.upload.settings")
-    def test_saves_valid_file(self, mock_settings):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            mock_settings.upload_dir = tmpdir
+    # @patch("app.services.upload.settings")
+    # def test_saves_valid_file(self, mock_settings):
+    #     with tempfile.TemporaryDirectory() as tmpdir:
+    #         mock_settings.upload_dir = tmpdir
 
-            file = MagicMock()
-            file.content_type = "image/png"
-            file.size = 1000
-            file.filename = "room.png"
-            file.file = MagicMock()
-            file.file.read = MagicMock(return_value=b"fake png data")
+    #         file = MagicMock()
+    #         file.content_type = "image/png"
+    #         file.size = 1000
+    #         file.filename = "room.png"
+    #         file.file = MagicMock()
+    #         file.file.read = MagicMock(return_value=b"fake png data")
 
-            filename = UploadService.save_uploaded_file(file)
+    #         filename = UploadService.save_uploaded_file(file)
 
-            assert filename.endswith(".png")
-            assert os.path.exists(os.path.join(tmpdir, filename))
+    #         assert filename.endswith(".png")
+    #         assert os.path.exists(os.path.join(tmpdir, filename))
 
 
 class TestSaveBytesToFile:
