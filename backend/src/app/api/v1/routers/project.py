@@ -99,7 +99,12 @@ async def create_project(
     db.add(new_project)
     db.commit()
     db.refresh(new_project)
-    return {"id": new_project.id, "title": new_project.title, "user_id": new_project.user_id, "created_at": str(new_project.created_at)}
+    return {
+        "id": new_project.id,
+        "title": new_project.title,
+        "user_id": new_project.user_id,
+        "created_at": str(new_project.created_at),
+    }
 
 
 @router.get("/get_project_items/{project_id}", status_code=status.HTTP_200_OK)

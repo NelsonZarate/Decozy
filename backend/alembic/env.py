@@ -5,11 +5,10 @@ from logging.config import fileConfig  # noqa: E402
 
 from sqlalchemy import engine_from_config, pool  # noqa: E402
 
+import app.models  # noqa: F401, E402
 from alembic import context  # noqa: E402
 from app.core.settings import settings  # noqa: E402
-
 from app.database.session import Base  # noqa: E402
-import app.models  # noqa: F401, E402
 
 config = context.config
 DATABASE_URL = (

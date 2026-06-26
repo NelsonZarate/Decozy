@@ -18,8 +18,8 @@ import os
 import shutil
 import sys
 
-from app.database.session import SessionLocal
 from app.core.settings import settings
+from app.database.session import SessionLocal
 from app.models.project import GenerationModel, ProjectImageModel, ProjectModel
 
 PROJECT_ID = int(sys.argv[1]) if len(sys.argv) > 1 else 3

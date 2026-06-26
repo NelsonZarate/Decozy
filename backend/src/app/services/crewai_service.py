@@ -272,7 +272,8 @@ def build_prompt_architect_crew() -> Crew:
             "When a user asks to modify an existing room, you MUST retain 100% of the original room style, "
             "colors, materials, and layout, only additive or subtractive changes are allowed. "
             "You never hallucinate changes that the user didn't explicitly request. "
-            "If the user wants a 'red rug', the existing blue sofa and white walls MUST remain untouched in your description."
+            "If the user wants a 'red rug', the existing blue sofa and white walls "
+            "MUST remain untouched in your description."
         ),
         llm=llm,
         verbose=True,
@@ -285,14 +286,17 @@ def build_prompt_architect_crew() -> Crew:
             "CRITICAL CONSTRAINTS FOR OPTIMIZATION:\n"
             "1. Is it about interior decoration? If not, status is 'rejected' with a reason.\n"
             "2. If valid, isolate the intent ('add', 'remove', or 'none').\n"
-            "3. If the intent is 'add' or 'remove', you MUST generate an `optimized_prompt` designed for an image-to-image or inpainting model.\n"
-            "4. DO NOT rewrite the entire room composition. Use anchoring language. Maintain the base environment identical. "
+            "3. If the intent is 'add' or 'remove', you MUST generate an "
+            "`optimized_prompt` designed for an image-to-image or inpainting model.\n"
+            "4. DO NOT rewrite the entire room composition. Use anchoring language. "
+            "Maintain the base environment identical. "
             "Only describe the precise insertion or removal of the item: {user_prompt}.\n"
             "5. If adding items, explicitly list them in 'items_to_add'."
         ),
         expected_output=(
             "Strict JSON matching the PromptArchitectureResult schema. "
-            "The optimized_prompt must focus purely on modifying the targeted elements while preserving the original room framework."
+            "The optimized_prompt must focus purely on modifying the targeted elements "
+            "while preserving the original room framework."
         ),
         agent=prompt_architect,
         output_json=PromptArchitectureResult,
@@ -325,7 +329,8 @@ def build_asset_crew(
         backstory=(
             "You are a highly disciplined product curator. You never inventory the entire room. "
             "You ONLY look at the specific asset that was freshly added or targeted by the user. "
-            "If the user added a lamp, you only create an asset for that lamp. You ignore the pre-existing sofa, walls, and floors. "
+            "If the user added a lamp, you only create an asset for that lamp. "
+            "You ignore the pre-existing sofa, walls, and floors. "
             "You output pure, structured data with absolutely no conversational prose."
         ),
         llm=llm,

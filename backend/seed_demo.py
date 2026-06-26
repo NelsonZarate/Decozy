@@ -34,8 +34,8 @@ import requests
 
 from app.core.settings import settings
 from app.database.session import SessionLocal
-from app.models.project import GenerationModel, ProjectImageModel, ProjectModel
 from app.models.item import ItemModel
+from app.models.project import GenerationModel, ProjectImageModel, ProjectModel
 from app.models.user import UserModel
 
 # Target user id (default 2, overridable via CLI arg).

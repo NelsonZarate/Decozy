@@ -2,7 +2,8 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, event
+from sqlalchemy import JSON, create_engine, event
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.database.session import Base, get_db
@@ -13,8 +14,7 @@ SQLALCHEMY_TEST_URL = "sqlite:///./test.db"
 engine = create_engine(SQLALCHEMY_TEST_URL, connect_args={"check_same_thread": False})
 
 # Map PostgreSQL JSONB to SQLite JSON at DDL level
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy import JSON
+
 
 @event.listens_for(engine, "connect")
 def _set_sqlite_pragma(dbapi_conn, connection_record):
@@ -59,9 +59,10 @@ def client(db_session: Session) -> TestClient:
 @pytest.fixture()
 def auth_headers(db_session: Session) -> dict[str, str]:
     """Create a test user and return auth headers with valid JWT."""
-    from app.models.user import UserModel, UserIdentityModel
     from jose import jwt
+
     from app.core.settings import settings
+    from app.models.user import UserIdentityModel, UserModel
 
     user = UserModel(email="test@example.com", plan="free")
     db_session.add(user)

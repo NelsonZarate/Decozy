@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1.routers import auth, upload, project, user, payments, tokens
+from app.api.v1.routers import auth, payments, project, tokens, upload, user
 
 api_router = APIRouter()
 

@@ -1,6 +1,5 @@
 """Tests for the payments price parsing utility."""
 
-import pytest
 
 from app.api.v1.routers.payments import _parse_price_to_cents
 

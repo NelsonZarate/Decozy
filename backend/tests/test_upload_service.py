@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.services.upload import ALLOWED_EXTENSIONS, MAX_FILE_SIZE, UploadService
+from app.services.upload import MAX_FILE_SIZE, UploadService
 
 
 class TestSaveUploadedFile:

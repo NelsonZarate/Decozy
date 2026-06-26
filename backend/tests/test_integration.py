@@ -4,17 +4,14 @@ Covers: Auth flow, Project CRUD, AI Generation pipeline (mocked),
 Stripe checkout + session verification, and E2E simulation.
 """
 
-import json
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.models.item import ItemModel, UserSavedItemModel
 from app.models.order import OrderModel
 from app.models.project import GenerationModel, ProjectImageModel, ProjectModel
-
 
 # ─── AUTH FLOW ────────────────────────────────────────────────────────────────
 
@@ -271,7 +268,9 @@ class TestStripePayments:
         assert order.stripe_session_id == "cs_test_123"
 
     @patch("app.api.v1.routers.payments.stripe.checkout.Session.create")
-    def test_checkout_rejects_empty_items(self, mock_stripe, client: TestClient, auth_headers: dict, db_session: Session):
+    def test_checkout_rejects_empty_items(
+        self, mock_stripe, client: TestClient, auth_headers: dict, db_session: Session,
+    ):
         """Checkout should fail if no valid items."""
         project = ProjectModel(user_id=1, title="Empty")
         db_session.add(project)
@@ -286,14 +285,19 @@ class TestStripePayments:
         assert resp.status_code == 400
 
     @patch("app.api.v1.routers.payments.stripe.checkout.Session.retrieve")
-    def test_verify_session_marks_order_paid(self, mock_retrieve, client: TestClient, auth_headers: dict, db_session: Session):
+    def test_verify_session_marks_order_paid(
+        self, mock_retrieve, client: TestClient, auth_headers: dict, db_session: Session,
+    ):
         """Verify-session should mark order as paid when Stripe confirms payment."""
         project = ProjectModel(user_id=1, title="WH")
         db_session.add(project)
         db_session.commit()
         db_session.refresh(project)
 
-        order = OrderModel(user_id=1, project_id=project.id, status="pending", total_cents=5000, stripe_session_id="cs_test_456")
+        order = OrderModel(
+            user_id=1, project_id=project.id, status="pending",
+            total_cents=5000, stripe_session_id="cs_test_456",
+        )
         db_session.add(order)
         db_session.commit()
         db_session.refresh(order)
@@ -326,7 +330,10 @@ class TestStripePayments:
         db_session.commit()
         db_session.refresh(project)
 
-        order = OrderModel(user_id=1, project_id=project.id, status="pending", total_cents=3000, stripe_session_id="cs_test_unpaid")
+        order = OrderModel(
+            user_id=1, project_id=project.id, status="pending",
+            total_cents=3000, stripe_session_id="cs_test_unpaid",
+        )
         db_session.add(order)
         db_session.commit()
 
@@ -387,11 +394,20 @@ class TestE2EFlow:
         generation.output_url = "/static/uploads/ai_e2e_room.png"
 
         # Add generated image
-        db_session.add(ProjectImageModel(project_id=project_id, image_type="generated", image_url="/static/uploads/ai_e2e_room.png"))
+        db_session.add(ProjectImageModel(
+            project_id=project_id, image_type="generated",
+            image_url="/static/uploads/ai_e2e_room.png",
+        ))
 
         # Simulate AI creating items (asset crew)
-        item1 = ItemModel(project_id=project_id, name="Modern Sofa", category="sofa", price="€899.99", image_url="/sofa.png")
-        item2 = ItemModel(project_id=project_id, name="Coffee Table", category="table", price="€249.99", image_url="/table.png")
+        item1 = ItemModel(
+            project_id=project_id, name="Modern Sofa",
+            category="sofa", price="€899.99", image_url="/sofa.png",
+        )
+        item2 = ItemModel(
+            project_id=project_id, name="Coffee Table",
+            category="table", price="€249.99", image_url="/table.png",
+        )
         db_session.add_all([item1, item2])
         db_session.commit()
         db_session.refresh(item1)

@@ -1,6 +1,5 @@
 """Integration tests for API routers."""
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -54,7 +53,6 @@ class TestUserRouter:
         assert resp.json()["email"] == "test@example.com"
 
     def test_save_item(self, client: TestClient, auth_headers: dict, db_session: Session):
-        from app.models.item import UserSavedItemModel
 
         project = ProjectModel(user_id=1, title="P")
         db_session.add(project)
